@@ -1,6 +1,6 @@
-import { API_BASE_URL } from './UNetConstants'
+import { buildApiUrl } from '../services/apiConfig'
 
-const MODEL_API_URL = import.meta.env.VITE_MODEL_API_URL || `${API_BASE_URL}/api/segment`
+const MODEL_API_URL = import.meta.env.VITE_MODEL_API_URL || buildApiUrl('/api/segment')
 
 export async function callModelAPI(imageDataURL, modelId, params) {
   const response = await fetch(MODEL_API_URL, {

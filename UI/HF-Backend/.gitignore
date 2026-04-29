@@ -1,10 +1,10 @@
 .env
+backend/.env
 *.log
 __pycache__/
-*.py[cod]
+*.pyc
 node_modules/
 .venv/
 venv/
 Model/static/uploads/
 Model/%SystemDrive%/
-.DS_Store

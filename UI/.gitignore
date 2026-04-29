@@ -29,3 +29,23 @@ Model/
 *.onnx
 *.bin
 *.safetensors
+
+# Hugging Face
+HF-Backend/
+Model/
+*.bin
+*.pt
+*.pth
+
+# Env (rất quan trọng)
+.env
+.env.local
+
+# Node modules
+node_modules/
+
+# Build
+dist/
+
+# Logs
+*.log

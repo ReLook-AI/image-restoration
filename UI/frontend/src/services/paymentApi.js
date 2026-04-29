@@ -1,4 +1,6 @@
-const PAYMENT_ENDPOINT = import.meta.env.VITE_PAYMENT_API_URL || 'http://localhost:8000/api/payments/create'
+import { buildApiUrl } from './apiConfig'
+
+const PAYMENT_ENDPOINT = import.meta.env.VITE_PAYMENT_API_URL || buildApiUrl('/api/payments/create')
 const PAYMENT_STATUS_ENDPOINT = PAYMENT_ENDPOINT.replace(/\/create$/, '/status')
 
 export async function createPaymentRequest(payload) {
