@@ -1,0 +1,10 @@
+.env
+*.log
+__pycache__/
+*.py[cod]
+node_modules/
+.venv/
+venv/
+Model/static/uploads/
+Model/%SystemDrive%/
+.DS_Store

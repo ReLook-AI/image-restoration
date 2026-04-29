@@ -1,0 +1,10 @@
+.git
+.env
+*.log
+__pycache__
+*.pyc
+node_modules
+.venv
+venv
+Model/static/uploads
+Model/%SystemDrive%
