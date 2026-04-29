@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { GoogleIcon, MailIcon, LockIcon } from '../components/Icons'
 import { supabase } from '../services/supabaseClient'
 
+const GOOGLE_LOGIN_REDIRECT_URL = 'https://relook-ai.vercel.app/'
+
 function getLoginErrorMessage(error) {
   if (error?.message?.toLowerCase().includes('invalid login credentials')) {
     return 'Invalid password, please try again'
@@ -48,7 +50,7 @@ export function LoginForm({ onSwitch }) {
     const { data, error: authError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/payment`,
+        redirectTo: GOOGLE_LOGIN_REDIRECT_URL,
         queryParams: {
           access_type: 'offline',
           prompt: 'select_account',
