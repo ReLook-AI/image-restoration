@@ -1,0 +1,11 @@
+{
+  "name": "relook-backend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node model-server.js",
+    "start": "node model-server.js",
+    "check": "node --check model-server.js"
+  }
+}
