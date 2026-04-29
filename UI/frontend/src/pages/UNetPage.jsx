@@ -24,6 +24,20 @@ import { Footer } from '../components/HomeComponents'
 import { callModelAPI } from './UNetModel'
 import { supabase } from '../services/supabaseClient'
 
+const FREE_DAILY_LIMIT = 5
+
+function getLocalDateKey() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function getFreeUsageKey(userId) {
+  return `relook-free-restoration:${userId}:${getLocalDateKey()}`
+}
+
 
 // ─────────────────────────────────────────────
 // 6. MAIN PAGE COMPONENT
@@ -43,11 +57,16 @@ export default function UNetPage() {
   const [history, setHistory] = useState([])   // thumbnail strip
   const [isDone, setIsDone] = useState(false)
   const [checkingPlan, setCheckingPlan] = useState(true)
-  const [hasPaidPlan, setHasPaidPlan] = useState(false)
+  const [currentPlanId, setCurrentPlanId] = useState('free')
+  const [userId, setUserId] = useState('')
+  const [freeUsageCount, setFreeUsageCount] = useState(0)
   const [isSignedIn, setIsSignedIn] = useState(false)
 
   const fileInputRef = useRef()
   const currentModel = MODEL_REGISTRY[modelId]
+  const isFreePlan = currentPlanId === 'free'
+  const freeUsesRemaining = Math.max(0, FREE_DAILY_LIMIT - freeUsageCount)
+  const hasReachedFreeLimit = isSignedIn && isFreePlan && freeUsesRemaining <= 0
 
   useEffect(() => {
     let mounted = true
@@ -60,12 +79,15 @@ export default function UNetPage() {
 
       if (!userId) {
         setIsSignedIn(false)
-        setHasPaidPlan(false)
+        setCurrentPlanId('free')
+        setUserId('')
+        setFreeUsageCount(0)
         setCheckingPlan(false)
         return
       }
 
       setIsSignedIn(true)
+      setUserId(userId)
 
       const { data } = await supabase
         .from('profiles')
@@ -75,7 +97,9 @@ export default function UNetPage() {
 
       if (!mounted) return
 
-      setHasPaidPlan((data?.current_plan || 'free') !== 'free')
+      const planId = data?.current_plan || 'free'
+      setCurrentPlanId(planId)
+      setFreeUsageCount(Number(localStorage.getItem(getFreeUsageKey(userId)) || 0))
       setCheckingPlan(false)
     }
 
@@ -129,6 +153,15 @@ export default function UNetPage() {
   // ── Orchestrate model inference ──
   const runInference = async () => {
     if (!imgSrc) return
+    if (!isSignedIn) {
+      setErrorMessage('Please sign in to use the restoration studio.')
+      return
+    }
+    if (hasReachedFreeLimit) {
+      setErrorMessage(`Free plan limit reached. You can restore ${FREE_DAILY_LIMIT} images per day. Upgrade for unlimited restoration.`)
+      return
+    }
+
     setProcessing(true); setResult(null); setIsDone(false)
     setErrorMessage('')
 
@@ -159,6 +192,12 @@ export default function UNetPage() {
       setResult(newResult)
       setHistory(prev => [output.maskDataURL, ...prev].slice(0, 8))
       setIsDone(true)
+
+      if (isFreePlan && userId) {
+        const nextUsageCount = freeUsageCount + 1
+        localStorage.setItem(getFreeUsageKey(userId), String(nextUsageCount))
+        setFreeUsageCount(nextUsageCount)
+      }
     } catch (err) {
       // Handle inference errors here (show toast, log, etc.)
       console.error('Inference failed:', err)
@@ -203,18 +242,18 @@ export default function UNetPage() {
     )
   }
 
-  if (!hasPaidPlan) {
+  if (!isSignedIn) {
     return (
       <>
         <Navbar />
         <div className="container-fluid bg-light d-flex align-items-center justify-content-center" style={{ minHeight: 'calc(100vh - 70px)', padding: '48px 6%' }}>
           <div className="bg-white border shadow-sm text-center" style={{ maxWidth: 520, borderRadius: 16, padding: '36px 32px' }}>
-            <h1 className="fw-bold text-primary mb-3" style={{ fontSize: '1.6rem' }}>Upgrade required</h1>
+            <h1 className="fw-bold text-primary mb-3" style={{ fontSize: '1.6rem' }}>Sign in required</h1>
             <p className="text-muted mb-4">
-              Your current plan is Free. Choose a paid plan to use the AI restoration studio.
+              Sign in to use the AI restoration studio. Free accounts include limited daily restoration.
             </p>
-            <Link to={isSignedIn ? '/payment' : '/login'} className="btn btn-primary btn-lg">
-              {isSignedIn ? 'Upgrade Plan' : 'Sign In to Upgrade'}
+            <Link to="/login" className="btn btn-primary btn-lg">
+              Sign In
             </Link>
           </div>
         </div>
@@ -309,6 +348,12 @@ export default function UNetPage() {
                 <i className="bi bi-play-fill me-1 fs-5"></i>Run AI Model
               </button>
 
+              {isFreePlan && (
+                <Link to="/payment" className="btn btn-outline-primary fw-medium px-3 py-2 btn-sm">
+                  Free: {freeUsesRemaining}/{FREE_DAILY_LIMIT} left
+                </Link>
+              )}
+
               <button onClick={downloadResult} disabled={!isDone} className={`btn btn-light border fw-medium px-3 py-2 btn-sm ${!isDone ? 'opacity-50' : ''}`}>
                 <i className="bi bi-download me-2"></i>Download
               </button>
@@ -319,6 +364,13 @@ export default function UNetPage() {
 
               <span className="ms-auto text-muted small px-3">{imgInfo}</span>
             </div>
+
+            {isFreePlan && hasReachedFreeLimit && (
+              <div className="alert alert-warning border-0 shadow-sm mb-0 d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                <span className="fw-medium">Free daily restoration limit reached.</span>
+                <Link to="/payment" className="btn btn-primary btn-sm">Upgrade for unlimited</Link>
+              </div>
+            )}
 
             {/* ── Input / Output Canvas Panels ── */}
             <div className="row g-3">
