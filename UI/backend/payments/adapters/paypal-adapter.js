@@ -1,3 +1,5 @@
+const DEFAULT_PAYPAL_PAYMENT_URL = 'https://paypal.me/relookai'
+
 function createFourDigitUserCode(order) {
   const source = order.user_id || order.order_id
   const hash = Array.from(String(source)).reduce((total, char) => {
@@ -25,7 +27,7 @@ function createPayPalAmountUrl(baseUrl, amount, currency) {
 export async function createPayPalPayment(order) {
   const providerTxnId = `paypal_${order.order_id}`
   const paypalUrl = createPayPalAmountUrl(
-    process.env.PAYPAL_PAYMENT_URL || '',
+    process.env.PAYPAL_PAYMENT_URL || DEFAULT_PAYPAL_PAYMENT_URL,
     order.amount,
     order.currency || 'USD',
   )

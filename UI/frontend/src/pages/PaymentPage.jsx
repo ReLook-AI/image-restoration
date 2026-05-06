@@ -20,6 +20,7 @@ const VIETQR_ACCOUNT_NO = '0961856252'
 const VIETQR_ACCOUNT_NAME = 'NGUYEN LAM ANH TUAN'
 const VIETQR_TEMPLATE = 'print'
 const VIETQR_VND_PER_USD = 25000
+const PAYPAL_PAYMENT_URL = 'https://paypal.me/relookai'
 
 function getPlanRank(planId) {
   return PLAN_RANK[planId] || 0
@@ -108,6 +109,16 @@ function normalizePaymentResult(result, fallback = {}) {
 
 function isDemoQrCode(value) {
   return String(value || '').startsWith('VIETQR_DEMO:') || String(value || '').startsWith('ZALOPAY_DEMO:')
+}
+
+function createPayPalAmountUrl(baseUrl, amount) {
+  const normalizedBaseUrl = String(baseUrl || '').replace(/\/+$/, '')
+  const normalizedAmount = Number(amount || 0).toFixed(2)
+
+  if (!normalizedBaseUrl || Number.isNaN(Number(normalizedAmount))) return normalizedBaseUrl
+  if (!normalizedBaseUrl.includes('paypal.me/')) return normalizedBaseUrl
+
+  return `${normalizedBaseUrl}/${normalizedAmount}`
 }
 
 export default function PaymentPage() {
@@ -236,6 +247,7 @@ export default function PaymentPage() {
     const vat = +(after * 0.1).toFixed(2)
     return +(after + vat).toFixed(2)
   }
+  const paypalPaymentUrl = paymentResult?.orderUrl || createPayPalAmountUrl(PAYPAL_PAYMENT_URL, paymentResult?.amount || getTotal())
 
   const continueToPaymentMethods = () => {
     if (!canUpgradeSelectedPlan) {
@@ -453,11 +465,7 @@ export default function PaymentPage() {
                     </div>
                   </div>
                 )}
-                {paymentResult?.orderUrl ? (
-                  <a href={paymentResult.orderUrl} target="_blank" rel="noreferrer" className="btn btn-primary">Open PayPal</a>
-                ) : (
-                  <p style={{ color: 'var(--muted)', fontSize: '.86rem', margin: 0 }}>Add PAYPAL_PAYMENT_URL in backend/.env to show your PayPal link.</p>
-                )}
+                <a href={paypalPaymentUrl} target="_blank" rel="noreferrer" className="btn btn-primary">Open PayPal</a>
               </div>
             )}
             {checkoutStep === 'details' && pm === 'qr' && (
