@@ -1,4 +1,7 @@
 const VND_PER_USD = Number(process.env.VIETQR_VND_PER_USD || 25000)
+const DEFAULT_VIETQR_BANK_ID = 'MB'
+const DEFAULT_VIETQR_ACCOUNT_NO = '0961856252'
+const DEFAULT_VIETQR_ACCOUNT_NAME = 'NGUYEN LAM ANH TUAN'
 
 function toVietQrAmount(order) {
   if (String(order.currency || '').toUpperCase() === 'VND') {
@@ -49,9 +52,9 @@ function createDemoVietQrPayment(order) {
 }
 
 export async function createVietQrPayment(order) {
-  const bankId = process.env.VIETQR_BANK_ID
-  const accountNo = process.env.VIETQR_ACCOUNT_NO
-  const accountName = process.env.VIETQR_ACCOUNT_NAME || ''
+  const bankId = process.env.VIETQR_BANK_ID || DEFAULT_VIETQR_BANK_ID
+  const accountNo = process.env.VIETQR_ACCOUNT_NO || DEFAULT_VIETQR_ACCOUNT_NO
+  const accountName = process.env.VIETQR_ACCOUNT_NAME || DEFAULT_VIETQR_ACCOUNT_NAME
   const template = process.env.VIETQR_TEMPLATE || 'print'
 
   if (!bankId || !accountNo) {

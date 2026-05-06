@@ -24,6 +24,32 @@ function getNextPlanId(currentPlanId) {
   return PLANS.find(plan => getPlanRank(plan.id) > currentRank)?.id || currentPlanId
 }
 
+function isHttpUrl(value) {
+  return /^https?:\/\//i.test(String(value || ''))
+}
+
+function isQrImageUrl(value) {
+  const url = String(value || '')
+  return isHttpUrl(url) && (/\/image\//i.test(url) || /\.(png|jpe?g|webp)(\?|$)/i.test(url))
+}
+
+function normalizePaymentResult(result) {
+  if (!result) return result
+
+  const qrCodeUrl = result.qrCodeUrl || (isQrImageUrl(result.qrCode) ? result.qrCode : '')
+  const qrCode = qrCodeUrl && result.qrCode === qrCodeUrl ? '' : result.qrCode
+
+  return {
+    ...result,
+    qrCodeUrl,
+    qrCode,
+  }
+}
+
+function isDemoQrCode(value) {
+  return String(value || '').startsWith('VIETQR_DEMO:') || String(value || '').startsWith('ZALOPAY_DEMO:')
+}
+
 export default function PaymentPage() {
   const [selectedPlan, setSelectedPlan] = useState('pro')
   const [pm, setPm]       = useState('paypal')
@@ -46,7 +72,7 @@ export default function PaymentPage() {
   const hasHigherPlan = PLANS.some(p => getPlanRank(p.id) > currentPlanRank)
   const isQrPayment = pm === 'zalopay' || pm === 'qr'
   const isManualPayment = isQrPayment || pm === 'paypal'
-  const hasQrCode = Boolean(paymentResult?.qrCode)
+  const hasQrCode = Boolean(paymentResult?.qrCodeUrl || (paymentResult?.qrCode && !isDemoQrCode(paymentResult.qrCode)))
 
   const updateCurrentUserPlan = async (planId) => {
     const { data: sessionData } = await supabase.auth.getSession()
@@ -78,7 +104,7 @@ export default function PaymentPage() {
 
     getPaymentStatus(orderId)
       .then(status => {
-        setPaymentResult(status)
+        setPaymentResult(normalizePaymentResult(status))
         setDone(status.status === 'paid')
         if (status.status === 'paid') {
           updateCurrentUserPlan(status.planId).catch(err => {
@@ -196,14 +222,15 @@ export default function PaymentPage() {
         returnUrl: `${window.location.origin}/payment`,
       })
 
-      setPaymentResult(result)
+      const normalizedResult = normalizePaymentResult(result)
+      setPaymentResult(normalizedResult)
 
-      if (!isManualPayment && !result.qrCode && (result.redirectUrl || result.orderUrl || result.checkoutUrl)) {
-        window.location.assign(result.redirectUrl || result.orderUrl || result.checkoutUrl)
+      if (!isManualPayment && !normalizedResult.qrCode && !normalizedResult.qrCodeUrl && (normalizedResult.redirectUrl || normalizedResult.orderUrl || normalizedResult.checkoutUrl)) {
+        window.location.assign(normalizedResult.redirectUrl || normalizedResult.orderUrl || normalizedResult.checkoutUrl)
         return
       }
 
-      if (result.status === 'paid' || result.paid === true) {
+      if (normalizedResult.status === 'paid' || normalizedResult.paid === true) {
         await updateCurrentUserPlan(plan.id)
         setDone(true)
       }
@@ -252,11 +279,11 @@ export default function PaymentPage() {
   return (
     <>
       <Navbar />
-      <div style={{ background: 'linear-gradient(135deg,#e8f0fe,#f5f8ff,#dce7fb)', minHeight: 'calc(100vh - 70px)', padding: '48px 6%' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 28, maxWidth: 980, margin: '0 auto', alignItems: 'flex-start' }}>
+      <div className="payment-page">
+        <div className="payment-layout">
 
           {/* Main form */}
-          <div style={{ background: '#fff', borderRadius: 24, padding: 36, border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)' }}>
+          <div className="payment-card">
             <h1 style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1.5rem', marginBottom: 6 }}>
               {checkoutStep === 'plan' ? 'Choose Your Plan' : checkoutStep === 'method' ? 'Choose Payment Method' : 'Complete Payment'}
             </h1>
@@ -377,10 +404,15 @@ export default function PaymentPage() {
                     <img src={paymentResult.qrCodeUrl} alt="ZaloPay QR code" style={{ width: 220, maxWidth: '100%', borderRadius: 8, background: '#fff', padding: 10 }} />
                   </div>
                 )}
-                {paymentResult?.qrCode && !paymentResult?.qrCodeUrl && (
+                {paymentResult?.qrCode && !paymentResult?.qrCodeUrl && !isDemoQrCode(paymentResult.qrCode) && (
                   <div style={{ marginTop: 8, background: '#fff', padding: 12, borderRadius: 8, lineHeight: 0 }}>
                     <QRCodeCanvas value={paymentResult.qrCode} size={220} includeMargin />
                   </div>
+                )}
+                {paymentResult?.qrCode && isDemoQrCode(paymentResult.qrCode) && (
+                  <p style={{ color: '#ef4444', fontSize: '.86rem', fontWeight: 700, margin: 0 }}>
+                    Payment QR is still in demo mode. Please use VietQR or configure live ZaloPay credentials.
+                  </p>
                 )}
               </div>
             )}
@@ -413,10 +445,15 @@ export default function PaymentPage() {
                     <img src={paymentResult.qrCodeUrl} alt="VietQR code" style={{ width: 300, maxWidth: '100%', borderRadius: 8 }} />
                   </div>
                 )}
-                {paymentResult?.qrCode && !paymentResult?.qrCodeUrl && (
+                {paymentResult?.qrCode && !paymentResult?.qrCodeUrl && !isDemoQrCode(paymentResult.qrCode) && (
                   <div style={{ marginTop: 20, background: '#fff', padding: 12, borderRadius: 8, lineHeight: 0 }}>
                     <QRCodeCanvas value={paymentResult.qrCode} size={220} includeMargin />
                   </div>
+                )}
+                {paymentResult?.qrCode && isDemoQrCode(paymentResult.qrCode) && (
+                  <p style={{ color: '#ef4444', fontSize: '.86rem', fontWeight: 700, margin: '16px 0 0' }}>
+                    VietQR is still in demo mode. A real bank QR image was not returned by the backend.
+                  </p>
                 )}
                 {paymentResult?.amount && paymentResult?.currency && (
                   <p style={{ color: 'var(--primary)', fontSize: '.9rem', margin: '4px 0 0', fontWeight: 700 }}>
@@ -438,7 +475,7 @@ export default function PaymentPage() {
               </div>
             )}
 
-            {checkoutStep === 'details' && pm !== 'zalopay' && pm !== 'qr' && paymentResult?.qrCode && !paymentResult?.qrCodeUrl && (
+            {checkoutStep === 'details' && pm !== 'zalopay' && pm !== 'qr' && paymentResult?.qrCode && !paymentResult?.qrCodeUrl && !isDemoQrCode(paymentResult.qrCode) && (
               <div style={{ textAlign: 'center', marginTop: 16, padding: 20, background: '#fff', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
                 <QRCodeCanvas value={paymentResult.qrCode} size={220} includeMargin />
                 <p style={{ marginTop: 10, color: 'var(--muted)', fontSize: '.9rem' }}>
@@ -487,9 +524,9 @@ export default function PaymentPage() {
           </div>
 
           {/* Sidebar */}
-          <div>
+          <div className="payment-sidebar">
             <OrderSummary plan={plan} promoApplied={promoApplied} />
-            <div style={{ background: 'linear-gradient(135deg,var(--primary),var(--accent))', borderRadius: 16, padding: 20, color: '#fff', marginTop: 16, textAlign: 'center' }}>
+            <div className="payment-testimonial">
               <div style={{ fontSize: '1.5rem', marginBottom: 8 }}>⭐</div>
               <p style={{ fontSize: '.88rem', opacity: .9, lineHeight: 1.7 }}>"ReLook-AI completely transformed our image processing pipeline. Absolutely remarkable!"</p>
               <div style={{ marginTop: 10, fontSize: '.8rem', opacity: .7 }}>— Mai Nguyen, CTO at TechViet</div>

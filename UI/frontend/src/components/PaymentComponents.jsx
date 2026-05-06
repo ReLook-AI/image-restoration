@@ -7,7 +7,7 @@ export function OrderSummary({ plan, promoApplied }) {
   const total = +(after + vat).toFixed(2)
 
   return (
-    <div style={{ background: '#fff', borderRadius: 24, padding: '30px 28px', border: '1px solid var(--border)', boxShadow: 'var(--shadow)' }}>
+    <div className="order-summary-card" style={{ background: '#fff', borderRadius: 24, padding: '30px 28px', border: '1px solid var(--border)', boxShadow: 'var(--shadow)' }}>
       <h3 style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: 16 }}>Order Summary</h3>
       {[
         [`${plan.name} Plan`, fmt(plan.price)],
