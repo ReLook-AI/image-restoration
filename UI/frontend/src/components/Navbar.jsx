@@ -7,6 +7,7 @@ export default function Navbar() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
+  const [menuOpen, setMenuOpen] = useState(false)
   const active = (path) => pathname === path ? 'active' : ''
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function Navbar() {
 
   const handleNav = (e, targetPath, hashId) => {
     e.preventDefault()
+    setMenuOpen(false)
     if (pathname === targetPath) {
       document.getElementById(hashId)?.scrollIntoView({ behavior: 'smooth' })
     } else {
@@ -46,6 +48,7 @@ export default function Navbar() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
+    setMenuOpen(false)
     navigate('/')
   }
 
@@ -56,12 +59,31 @@ export default function Navbar() {
         ReLook-AI
       </Link>
 
+      <button
+        type="button"
+        className="mobile-menu-btn"
+        aria-label="Toggle navigation menu"
+        aria-expanded={menuOpen}
+        onClick={() => setMenuOpen(open => !open)}
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
       <ul className="nav-links">
         <li><Link to="/" className={active('/')}>Home</Link></li>
         <li><Link to="/app" className={active('/app')}>Restoration</Link></li>
         <li><a href="/#features" onClick={(e) => handleNav(e, '/', 'features')}>Features</a></li>
         <li><a href="#contact" onClick={(e) => handleNav(e, pathname, 'contact')}>Contact</a></li>
       </ul>
+
+      <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
+        <Link to="/" className={active('/')} onClick={() => setMenuOpen(false)}>Home</Link>
+        <Link to="/app" className={active('/app')} onClick={() => setMenuOpen(false)}>Restoration</Link>
+        <a href="/#features" onClick={(e) => handleNav(e, '/', 'features')}>Features</a>
+        <a href="#contact" onClick={(e) => handleNav(e, pathname, 'contact')}>Contact</a>
+      </div>
 
       <div className="nav-cta">
         {isSignedIn ? (

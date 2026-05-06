@@ -48,6 +48,28 @@ body { font-family: 'Montserrat', sans-serif; color: var(--text); background: va
 .nav-links a:hover, .nav-links a.active { color: var(--accent); }
 .nav-cta { display: flex; align-items: center; gap: 12px; }
 .nav-welcome { color: var(--primary); font-weight: 700; font-size: .9rem; white-space: nowrap; }
+.mobile-menu-btn {
+  display: none;
+  width: 44px;
+  height: 44px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+}
+.mobile-menu-btn span {
+  width: 20px;
+  height: 2px;
+  border-radius: 99px;
+  background: var(--primary);
+}
+.mobile-menu {
+  display: none;
+}
 
 /* ── Buttons ── */
 .btn {
@@ -340,6 +362,34 @@ footer .copy { margin-top: 16px; color: rgba(255,255,255,.45); font-size: .8rem;
     display: grid !important;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
+  }
+  .mobile-menu-btn {
+    display: inline-flex;
+    margin-left: auto;
+  }
+  .mobile-menu {
+    display: none;
+    width: 100%;
+    grid-column: 1 / -1;
+    padding: 8px 0 2px;
+    border-top: 1px solid var(--border);
+  }
+  .mobile-menu.open {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .mobile-menu a {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 700;
+    padding: 12px 4px;
+    border-radius: 8px;
+  }
+  .mobile-menu a.active,
+  .mobile-menu a:hover {
+    color: var(--accent);
+    background: var(--light-blue);
   }
   .nav-welcome {
     grid-column: 1 / -1;
