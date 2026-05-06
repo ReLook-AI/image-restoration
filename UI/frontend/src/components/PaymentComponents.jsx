@@ -38,7 +38,7 @@ export function OrderSummary({ plan, promoApplied }) {
         </div>
       ))}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
-        {['PayPal', 'ZaloPay', 'VietQR'].map(b => (
+        {['PayPal', 'VietQR'].map(b => (
           <div key={b} style={{ padding: '5px 12px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '.75rem', fontWeight: 700, color: 'var(--muted)' }}>{b}</div>
         ))}
       </div>

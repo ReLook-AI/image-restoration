@@ -130,7 +130,7 @@ export default function PaymentPage() {
   const currentPlanRank = getPlanRank(currentPlanId)
   const canUpgradeSelectedPlan = selectedPlanRank > currentPlanRank
   const hasHigherPlan = PLANS.some(p => getPlanRank(p.id) > currentPlanRank)
-  const isQrPayment = pm === 'zalopay' || pm === 'qr'
+  const isQrPayment = pm === 'qr'
   const isManualPayment = isQrPayment || pm === 'paypal'
   const hasQrCode = Boolean(paymentResult?.qrCodeUrl || (paymentResult?.qrCode && !isDemoQrCode(paymentResult.qrCode)))
 
@@ -410,7 +410,7 @@ export default function PaymentPage() {
               <>
                 <h3 style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: 14 }}>Payment Method</h3>
             <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-              {[['paypal', 'PayPal'], ['zalopay', 'ZaloPay'], ['qr', 'VietQR']].map(([id, lbl]) => (
+              {[['paypal', 'PayPal'], ['qr', 'VietQR']].map(([id, lbl]) => (
                 <button key={id} onClick={() => setPm(id)} style={{
                   padding: '8px 16px', borderRadius: 10, fontFamily: 'inherit', fontWeight: 600, fontSize: '.85rem', cursor: 'pointer',
                   border: `${pm === id ? '2px' : '1.5px'} solid ${pm === id ? 'var(--accent)' : 'var(--border)'}`,
@@ -426,7 +426,7 @@ export default function PaymentPage() {
               <div style={{ marginBottom: 16, padding: 14, borderRadius: 'var(--radius-sm)', background: '#fff', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
                 <div>
                   <div style={{ color: 'var(--muted)', fontSize: '.78rem', fontWeight: 700, textTransform: 'uppercase' }}>Payment method</div>
-                  <div style={{ color: 'var(--primary)', fontWeight: 800 }}>{pm === 'paypal' ? 'PayPal' : pm === 'zalopay' ? 'ZaloPay' : 'VietQR'}</div>
+                  <div style={{ color: 'var(--primary)', fontWeight: 800 }}>{pm === 'paypal' ? 'PayPal' : 'VietQR'}</div>
                 </div>
                 <button type="button" className="btn btn-outline" style={{ borderRadius: 'var(--radius-sm)', padding: '8px 14px' }} onClick={() => setCheckoutStep('method')}>
                   Change
@@ -460,50 +460,10 @@ export default function PaymentPage() {
                 )}
               </div>
             )}
-            {checkoutStep === 'details' && pm === 'zalopay' && (
-              <div style={{ textAlign: 'center', padding: 32, background: 'var(--bg)', borderRadius: 'var(--radius)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-                <p style={{ color: 'var(--muted)', fontSize: '.95rem', maxWidth: 300, margin: 0 }}>Scan QR on your phone</p>
-                {paymentResult?.qrCodeUrl && (
-                  <div style={{ marginTop: 8, background: '#fff', padding: 12, borderRadius: 8, lineHeight: 0 }}>
-                    <img src={paymentResult.qrCodeUrl} alt="ZaloPay QR code" style={{ width: 220, maxWidth: '100%', borderRadius: 8, background: '#fff', padding: 10 }} />
-                  </div>
-                )}
-                {paymentResult?.qrCode && !paymentResult?.qrCodeUrl && !isDemoQrCode(paymentResult.qrCode) && (
-                  <div style={{ marginTop: 8, background: '#fff', padding: 12, borderRadius: 8, lineHeight: 0 }}>
-                    <QRCodeCanvas value={paymentResult.qrCode} size={220} includeMargin />
-                  </div>
-                )}
-                {paymentResult?.qrCode && !paymentResult?.qrCodeUrl && isDemoQrCode(paymentResult.qrCode) && (
-                  <p style={{ color: '#ef4444', fontSize: '.86rem', fontWeight: 700, margin: 0 }}>
-                    Payment QR is still in demo mode. Please use VietQR or configure live ZaloPay credentials.
-                  </p>
-                )}
-              </div>
-            )}
             {checkoutStep === 'details' && pm === 'qr' && (
               <div style={{ textAlign: 'center', padding: 32, background: 'var(--bg)', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
                 <h3 style={{ color: 'var(--primary)', marginBottom: 8, fontWeight: 800 }}>VietQR Bank Transfer</h3>
                 <p style={{ color: 'var(--muted)', fontSize: '.95rem', maxWidth: 300, margin: '0 auto' }}>Scan QR with your banking app</p>
-                {paymentResult?.transferContent && (
-                  <div style={{ margin: '16px auto 0', padding: 14, background: '#fff', border: '2px solid var(--accent)', borderRadius: 8, maxWidth: 320 }}>
-                    <div style={{ color: 'var(--muted)', fontSize: '.76rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>
-                      Noi dung thanh toan
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
-                      <span style={{ color: 'var(--primary)', fontSize: '1.7rem', fontWeight: 900, letterSpacing: 1 }}>
-                        {paymentResult.transferContent}
-                      </span>
-                      <button
-                        type="button"
-                        className="btn btn-outline"
-                        style={{ borderRadius: 'var(--radius-sm)', padding: '7px 12px', fontSize: '.8rem' }}
-                        onClick={() => navigator.clipboard?.writeText(paymentResult.transferContent)}
-                      >
-                        Copy
-                      </button>
-                    </div>
-                  </div>
-                )}
                 {paymentResult?.qrCodeUrl && (
                   <div style={{ marginTop: 20, background: '#fff', padding: 12, borderRadius: 8, lineHeight: 0 }}>
                     <img src={paymentResult.qrCodeUrl} alt="VietQR code" style={{ width: 300, maxWidth: '100%', borderRadius: 8 }} />
@@ -532,18 +492,18 @@ export default function PaymentPage() {
               </div>
             )}
 
-            {checkoutStep === 'details' && pm !== 'zalopay' && pm !== 'qr' && paymentResult?.qrCodeUrl && (
+            {checkoutStep === 'details' && pm !== 'qr' && paymentResult?.qrCodeUrl && (
               <div style={{ textAlign: 'center', marginTop: 16, padding: 20, background: '#fff', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
                 <img src={paymentResult.qrCodeUrl} alt="Payment QR code" style={{ width: 220, maxWidth: '100%', borderRadius: 8 }} />
                 <p style={{ marginTop: 10, color: 'var(--muted)', fontSize: '.9rem' }}>Scan this QR code to complete the payment.</p>
               </div>
             )}
 
-            {checkoutStep === 'details' && pm !== 'zalopay' && pm !== 'qr' && paymentResult?.qrCode && !paymentResult?.qrCodeUrl && !isDemoQrCode(paymentResult.qrCode) && (
+            {checkoutStep === 'details' && pm !== 'qr' && paymentResult?.qrCode && !paymentResult?.qrCodeUrl && !isDemoQrCode(paymentResult.qrCode) && (
               <div style={{ textAlign: 'center', marginTop: 16, padding: 20, background: '#fff', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
                 <QRCodeCanvas value={paymentResult.qrCode} size={220} includeMargin />
                 <p style={{ marginTop: 10, color: 'var(--muted)', fontSize: '.9rem' }}>
-                  Scan this QR code with {pm === 'zalopay' ? 'ZaloPay' : 'your banking app'}.
+                  Scan this QR code with your banking app.
                 </p>
               </div>
             )}
