@@ -28,8 +28,8 @@
   --bs-body-font-family: 'Montserrat', sans-serif;
 }
 
-html { scroll-behavior: smooth; }
-body { font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--bg); line-height: 1.6; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
+body { font-family: 'Montserrat', sans-serif; color: var(--text); background: var(--bg); line-height: 1.6; overflow-x: hidden; }
 
 /* ── Navbar ── */
 .navbar {
@@ -295,4 +295,83 @@ footer .copy { margin-top: 16px; color: rgba(255,255,255,.45); font-size: .8rem;
   .payment-page { padding: 20px 3%; }
   .payment-card { padding: 20px 14px; }
   .form-group input, .form-group select { font-size: .9rem; }
+}
+
+/* Home mobile fixes */
+@media(max-width:900px) {
+  .home-hero {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    justify-content: stretch !important;
+    gap: 28px !important;
+    padding: 44px 6% 56px !important;
+    min-height: auto !important;
+    overflow: hidden !important;
+  }
+  .home-hero > div:first-child {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .home-hero > div:nth-child(2) {
+    max-width: 100% !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  .home-hero > div:nth-child(2) > div:first-child {
+    width: min(100%, 420px) !important;
+    height: auto !important;
+    min-height: 280px !important;
+  }
+}
+
+@media(max-width:640px) {
+  .navbar {
+    align-items: flex-start;
+    padding: 16px 4% !important;
+  }
+  .logo {
+    width: 100%;
+  }
+  .logo svg {
+    width: 44px;
+    height: 44px;
+  }
+  .nav-cta {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .nav-welcome {
+    grid-column: 1 / -1;
+    font-size: .95rem;
+  }
+  .nav-cta .btn {
+    width: 100%;
+    min-width: 0;
+    padding: 11px 12px;
+    font-size: .9rem;
+  }
+  .home-hero {
+    padding: 34px 6% 48px !important;
+  }
+  .home-hero h1 {
+    font-size: clamp(2.35rem, 13vw, 3.2rem) !important;
+    line-height: 1.08 !important;
+    overflow-wrap: anywhere;
+  }
+  .home-hero p {
+    font-size: 1rem !important;
+    max-width: 100% !important;
+  }
+  .home-hero > div:first-child > div:nth-of-type(2) {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .home-hero > div:first-child > div:nth-of-type(2) .btn {
+    width: 100%;
+  }
+  .home-hero > div:nth-child(2) {
+    display: none !important;
+  }
 }

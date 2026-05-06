@@ -3,7 +3,7 @@ import { LogoIcon } from './Icons'
 
 export function Hero({ ctaPath = '/login' }) {
   return (
-    <section style={{
+    <section className="home-hero" style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       gap: 40, padding: '60px 6% 80px',
       background: 'linear-gradient(135deg,#eef3ff 0%,#f5f8ff 60%,#dce7fb 100%)',
