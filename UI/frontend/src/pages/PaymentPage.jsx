@@ -15,6 +15,12 @@ const PLAN_RANK = {
   ent: 3,
 }
 
+const VIETQR_BANK_ID = 'MB'
+const VIETQR_ACCOUNT_NO = '0961856252'
+const VIETQR_ACCOUNT_NAME = 'NGUYEN LAM ANH TUAN'
+const VIETQR_TEMPLATE = 'print'
+const VIETQR_VND_PER_USD = 25000
+
 function getPlanRank(planId) {
   return PLAN_RANK[planId] || 0
 }
@@ -33,14 +39,68 @@ function isQrImageUrl(value) {
   return isHttpUrl(url) && (/\/image\//i.test(url) || /\.(png|jpe?g|webp)(\?|$)/i.test(url))
 }
 
-function normalizePaymentResult(result) {
+function createFourDigitCode(value) {
+  const source = String(value || '')
+  const hash = Array.from(source).reduce((total, char) => {
+    return (total * 31 + char.charCodeAt(0)) % 10000
+  }, 0)
+
+  return String(hash).padStart(4, '0')
+}
+
+function parseDemoVietQr(value) {
+  const parts = String(value || '').split(':')
+  if (parts[0] !== 'VIETQR_DEMO' || parts.length < 4) return null
+
+  return {
+    orderId: parts[1],
+    amount: Number(parts[2]),
+    currency: parts[3],
+  }
+}
+
+function toVndAmount(amount, currency) {
+  if (String(currency || '').toUpperCase() === 'VND') {
+    return Math.round(Number(amount))
+  }
+
+  return Math.round(Number(amount) * VIETQR_VND_PER_USD)
+}
+
+function createVietQrImageUrl({ amount, currency, orderId, userId }) {
+  const transferContent = createFourDigitCode(userId || orderId)
+  const params = new URLSearchParams({
+    amount: String(toVndAmount(amount, currency)),
+    addInfo: transferContent,
+    accountName: VIETQR_ACCOUNT_NAME,
+  })
+
+  return {
+    qrCodeUrl: `https://img.vietqr.io/image/${VIETQR_BANK_ID}-${VIETQR_ACCOUNT_NO}-${VIETQR_TEMPLATE}.png?${params.toString()}`,
+    transferContent,
+    amount: toVndAmount(amount, currency),
+    currency: 'VND',
+  }
+}
+
+function normalizePaymentResult(result, fallback = {}) {
   if (!result) return result
 
-  const qrCodeUrl = result.qrCodeUrl || (isQrImageUrl(result.qrCode) ? result.qrCode : '')
+  const demoVietQr = parseDemoVietQr(result.qrCode)
+  const fallbackVietQr = demoVietQr
+    ? createVietQrImageUrl({
+      amount: demoVietQr.amount || fallback.amount,
+      currency: demoVietQr.currency || fallback.currency,
+      orderId: demoVietQr.orderId || result.orderId,
+      userId: fallback.userId,
+    })
+    : null
+  const qrCodeUrl = result.qrCodeUrl || fallbackVietQr?.qrCodeUrl || (isQrImageUrl(result.qrCode) ? result.qrCode : '')
   const qrCode = qrCodeUrl && result.qrCode === qrCodeUrl ? '' : result.qrCode
 
   return {
     ...result,
+    ...(fallbackVietQr || {}),
     qrCodeUrl,
     qrCode,
   }
@@ -222,7 +282,11 @@ export default function PaymentPage() {
         returnUrl: `${window.location.origin}/payment`,
       })
 
-      const normalizedResult = normalizePaymentResult(result)
+      const normalizedResult = normalizePaymentResult(result, {
+        amount: getTotal(),
+        currency: 'USD',
+        userId: sessionData.session?.user?.id,
+      })
       setPaymentResult(normalizedResult)
 
       if (!isManualPayment && !normalizedResult.qrCode && !normalizedResult.qrCodeUrl && (normalizedResult.redirectUrl || normalizedResult.orderUrl || normalizedResult.checkoutUrl)) {
@@ -409,7 +473,7 @@ export default function PaymentPage() {
                     <QRCodeCanvas value={paymentResult.qrCode} size={220} includeMargin />
                   </div>
                 )}
-                {paymentResult?.qrCode && isDemoQrCode(paymentResult.qrCode) && (
+                {paymentResult?.qrCode && !paymentResult?.qrCodeUrl && isDemoQrCode(paymentResult.qrCode) && (
                   <p style={{ color: '#ef4444', fontSize: '.86rem', fontWeight: 700, margin: 0 }}>
                     Payment QR is still in demo mode. Please use VietQR or configure live ZaloPay credentials.
                   </p>
@@ -450,7 +514,7 @@ export default function PaymentPage() {
                     <QRCodeCanvas value={paymentResult.qrCode} size={220} includeMargin />
                   </div>
                 )}
-                {paymentResult?.qrCode && isDemoQrCode(paymentResult.qrCode) && (
+                {paymentResult?.qrCode && !paymentResult?.qrCodeUrl && isDemoQrCode(paymentResult.qrCode) && (
                   <p style={{ color: '#ef4444', fontSize: '.86rem', fontWeight: 700, margin: '16px 0 0' }}>
                     VietQR is still in demo mode. A real bank QR image was not returned by the backend.
                   </p>
