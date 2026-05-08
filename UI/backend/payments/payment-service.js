@@ -1,11 +1,9 @@
 import { createOrder, getOrder, markOrderPending } from './order-service.js'
 import { createPayPalPayment } from './adapters/paypal-adapter.js'
-import { createZaloPayPayment } from './adapters/zalopay-adapter.js'
 import { createVietQrPayment } from './adapters/vietqr-adapter.js'
 
 const SUPPORTED_PAYMENT_METHODS = {
   paypal: createPayPalPayment,
-  zalopay: createZaloPayPayment,
   qr: createVietQrPayment,
   vietqr: createVietQrPayment,
 }

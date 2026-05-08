@@ -108,7 +108,7 @@ function normalizePaymentResult(result, fallback = {}) {
 }
 
 function isDemoQrCode(value) {
-  return String(value || '').startsWith('VIETQR_DEMO:') || String(value || '').startsWith('ZALOPAY_DEMO:')
+  return String(value || '').startsWith('VIETQR_DEMO:')
 }
 
 function createPayPalAmountUrl(baseUrl, amount) {
