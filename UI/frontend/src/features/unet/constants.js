@@ -5,31 +5,10 @@ export { API_BASE_URL }
 export const MODEL_REGISTRY = {
   unet: {
     name: 'Zhang et al. (Pre-trained)',
-    params: 'Selectable Color Fill',
+    params: 'Vibrant/Saturated Output',
     arch: 'Image Colorization (Static Images)',
   },
 }
-
-export const COLOR_STYLES = [
-  {
-    id: 'natural',
-    name: 'Natural',
-    tone: 'Realistic color balance',
-    icon: 'bi-brightness-high',
-  },
-  {
-    id: 'vivid',
-    name: 'Vivid',
-    tone: 'Rich saturated fill',
-    icon: 'bi-palette',
-  },
-  {
-    id: 'vintage',
-    name: 'Vintage',
-    tone: 'Warm soft film look',
-    icon: 'bi-camera',
-  },
-]
 
 export const PIPELINE_STEPS = [
   { pct: 5, label: 'Pre-processing image...', sub: 'Resizing to 256x256 & LAB color space' },
