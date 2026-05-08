@@ -16,12 +16,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
-import { MODEL_REGISTRY, PIPELINE_STEPS, API_BASE_URL } from './UNetConstants'
+import { MODEL_REGISTRY, PIPELINE_STEPS, API_BASE_URL } from '../features/unet/constants'
 import {
   StatCard, PanelHeader, DropZone, EmptyOutput, ProcessingOverlay, ImageSlider
 } from '../components/UNetComponents'
 import { Footer } from '../components/HomeComponents'
-import { callModelAPI } from './UNetModel'
+import { callModelAPI } from '../features/unet/modelApi'
 import { supabase } from '../services/supabaseClient'
 
 const FREE_DAILY_LIMIT = 5

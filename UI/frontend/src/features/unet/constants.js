@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../services/apiConfig'
+import { API_BASE_URL } from '../../services/apiConfig'
 
 export { API_BASE_URL }
 

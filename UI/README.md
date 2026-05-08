@@ -25,6 +25,8 @@ frontend/  React + Vite user interface
 backend/   Node API for model inference and payment callbacks
 ```
 
+For a more detailed map, see [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md).
+
 ## Supabase auth database
 
 Create a Supabase project, then add these values to `frontend/.env`:

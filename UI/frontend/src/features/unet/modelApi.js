@@ -1,4 +1,4 @@
-import { buildApiUrl } from '../services/apiConfig'
+import { buildApiUrl } from '../../services/apiConfig'
 
 const MODEL_API_URL = import.meta.env.VITE_MODEL_API_URL || buildApiUrl('/api/segment')
 

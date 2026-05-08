@@ -1,9 +1,9 @@
-import { fmt } from '../pages/PaymentConstants'
+import { fmt } from './constants'
 
 export function OrderSummary({ plan, promoApplied }) {
-  const disc  = promoApplied ? plan.price * 0.2 : 0
+  const disc = promoApplied ? plan.price * 0.2 : 0
   const after = plan.price - disc
-  const vat   = +(after * 0.1).toFixed(2)
+  const vat = +(after * 0.1).toFixed(2)
   const total = +(after + vat).toFixed(2)
 
   return (
@@ -25,7 +25,7 @@ export function OrderSummary({ plan, promoApplied }) {
       {promoApplied && (
         <div style={{ marginTop: 14 }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#dcfce7', color: '#16a34a', fontSize: '.8rem', fontWeight: 600, padding: '3px 10px', borderRadius: 20 }}>
-            🏷 RELOOK20 applied
+            ðŸ· RELOOK20 applied
           </span>
         </div>
       )}
@@ -34,7 +34,7 @@ export function OrderSummary({ plan, promoApplied }) {
       <h4 style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: 12 }}>What's included</h4>
       {['Unlimited image processing', 'Access to 200+ AI models', 'Priority processing queue', '24/7 technical support', 'Unlimited API integration', '30-day money-back guarantee'].map(t => (
         <div key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: '.85rem', marginBottom: 9 }}>
-          <span style={{ color: '#22c55e', fontWeight: 700, flexShrink: 0 }}>✓</span>{t}
+          <span style={{ color: '#22c55e', fontWeight: 700, flexShrink: 0 }}>âœ“</span>{t}
         </div>
       ))}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
