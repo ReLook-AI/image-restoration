@@ -7,10 +7,15 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Dependencies and build output
+node_modules/
+dist/
+dist-ssr/
+
+# Local environment files
 *.local
+.env
+.env.local
 
 # Editor directories and files
 .vscode/*
@@ -23,29 +28,11 @@ dist-ssr
 *.sln
 *.sw?
 
+# Model and Hugging Face artifacts
 Model/
+HF-Backend/
+*.bin
 *.pt
 *.pth
 *.onnx
-*.bin
 *.safetensors
-
-# Hugging Face
-HF-Backend/
-Model/
-*.bin
-*.pt
-*.pth
-
-# Env (rất quan trọng)
-.env
-.env.local
-
-# Node modules
-node_modules/
-
-# Build
-dist/
-
-# Logs
-*.log

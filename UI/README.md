@@ -9,7 +9,7 @@ Welcome to **ReLook-AI**! This is an advanced web application that utilizes arti
 - **B&W Image Colorization**: Uses state-of-the-art AI models to automatically add natural colors to old or black-and-white photos.
 - **Intuitive GUI**: A modern, user-friendly design featuring Drag & Drop functionality and an interactive before/after comparison slider.
 - **Lightning Fast**: Powered by modern web technologies for a smooth, lag-free experience with instant feedback right in the browser.
-- **Convenient Payments**: Built-in integrations with popular domestic and international payment gateways (Visa, ZaloPay, VietQR) for easy account upgrades and server sponsorships.
+- **Convenient Payments**: Built-in integrations with PayPal and VietQR for easy account upgrades and server sponsorships.
 
 ## 🛠️ Technology Stack
 
@@ -50,7 +50,7 @@ Request body:
 
 ```json
 {
-  "provider": "visa | zalopay | qr",
+  "provider": "paypal | qr",
   "planId": "pro",
   "planName": "Professional",
   "amount": 16.72,
@@ -71,7 +71,7 @@ Expected response:
 }
 ```
 
-ZaloPay merchant keys, VietQR bank/API credentials, card tokenization, order verification, and payment callbacks must stay on the backend. Do not expose those secrets in React or store raw card data in the browser.
+PayPal links, VietQR bank/API credentials, order verification, and payment callbacks must stay on the backend. Do not expose payment secrets in React.
 
 ## Model backend
 
