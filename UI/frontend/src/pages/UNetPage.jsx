@@ -16,7 +16,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
-import { MODEL_REGISTRY, PIPELINE_STEPS, API_BASE_URL } from '../features/unet/constants'
+import { MODEL_REGISTRY, PIPELINE_STEPS, API_BASE_URL, COLOR_STYLES } from '../features/unet/constants'
 import {
   StatCard, PanelHeader, DropZone, EmptyOutput, ProcessingOverlay, ImageSlider
 } from '../components/UNetComponents'
@@ -46,6 +46,7 @@ export default function UNetPage() {
 
   // ── State: model selection & inference parameters ──
   const modelId = 'unet'
+  const [selectedStyle, setSelectedStyle] = useState('vivid')
 
   // ── State: image and results ──
   const [imgSrc, setImgSrc] = useState(null)
@@ -64,6 +65,7 @@ export default function UNetPage() {
 
   const fileInputRef = useRef()
   const currentModel = MODEL_REGISTRY[modelId]
+  const currentStyle = COLOR_STYLES.find(style => style.id === selectedStyle) || COLOR_STYLES[0]
   const isFreePlan = currentPlanId === 'free'
   const freeUsesRemaining = Math.max(0, FREE_DAILY_LIMIT - freeUsageCount)
   const hasReachedFreeLimit = isSignedIn && isFreePlan && freeUsesRemaining <= 0
@@ -181,13 +183,13 @@ export default function UNetPage() {
       // 👉 MODEL INTEGRATION POINT
       // Replace callModelAPI() with your actual model.
       // ───────────────────────────────────────────────
-      const output = await callModelAPI(imgSrc, modelId, {})
+      const output = await callModelAPI(imgSrc, modelId, { colorStyle: selectedStyle })
 
       clearInterval(stepInterval)
       setProcStep(PIPELINE_STEPS.at(-1))
 
       const elapsed = `${((Date.now() - startTime) / 1000).toFixed(2)}s`
-      const newResult = { ...output, elapsed }
+      const newResult = { ...output, elapsed, styleName: currentStyle.name }
 
       setResult(newResult)
       setHistory(prev => [output.maskDataURL, ...prev].slice(0, 8))
@@ -307,10 +309,42 @@ export default function UNetPage() {
                     </li>
                     <li className="d-flex justify-content-between">
                       <span className="text-white-50"><i className="bi bi-palette me-2"></i>Style</span>
-                      <span className="fw-medium text-end" style={{ maxWidth: '65%' }}>{currentModel.params}</span>
+                      <span className="fw-medium text-end" style={{ maxWidth: '65%' }}>{currentStyle.name}</span>
                     </li>
                   </ul>
                 </div>
+              </div>
+            </div>
+
+            <div className="bg-light rounded-4 p-3 border border-1 shadow-sm">
+              <h6 className="fw-bold text-dark mb-3 d-flex align-items-center" style={{ fontSize: '0.85rem' }}>
+                <i className="bi bi-palette2 me-2 fs-5 text-primary"></i>Fill Style
+              </h6>
+              <div className="d-flex flex-column gap-2">
+                {COLOR_STYLES.map(style => {
+                  const isActive = selectedStyle === style.id
+                  return (
+                    <button
+                      key={style.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedStyle(style.id)
+                        setResult(null)
+                        setIsDone(false)
+                        setErrorMessage('')
+                      }}
+                      className={`btn text-start border d-flex align-items-center gap-3 ${isActive ? 'btn-primary text-white' : 'btn-white bg-white'}`}
+                      style={{ borderRadius: 12, padding: '10px 12px' }}
+                      aria-pressed={isActive}
+                    >
+                      <i className={`bi ${style.icon} fs-5`}></i>
+                      <span className="d-flex flex-column lh-sm">
+                        <span className="fw-bold" style={{ fontSize: '0.88rem' }}>{style.name}</span>
+                        <span className={isActive ? 'text-white-50' : 'text-muted'} style={{ fontSize: '0.74rem' }}>{style.tone}</span>
+                      </span>
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
@@ -420,7 +454,7 @@ export default function UNetPage() {
             {/* ── Summary Statistics Bar ── */}
             <div className="row g-3">
               <div className="col-6 col-md-4"><StatCard icon="⚡" value={result?.elapsed ?? '—'} label="Processing Time" /></div>
-              <div className="col-6 col-md-4"><StatCard icon="🎨" value={result ? 'Vibrant' : '—'} label="Color Mode" /></div>
+              <div className="col-6 col-md-4"><StatCard icon="🎨" value={result?.styleName ?? currentStyle.name} label="Fill Style" /></div>
               <div className="col-12 col-md-4"><StatCard icon="📐" value={result?.resolution ?? '—'} label="Output Resolution" /></div>
             </div>
 

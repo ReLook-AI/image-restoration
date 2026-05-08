@@ -15,8 +15,11 @@ export async function callModelAPI(imageDataURL, modelId, params) {
     throw new Error(data?.message || 'Model inference failed')
   }
 
+  const maskDataURL = data.maskDataURL || data.outputImageDataURL || data.imageDataURL
+
   return {
-    maskDataURL: data.maskDataURL || data.outputImageDataURL || data.imageDataURL,
+    maskDataURL,
     resolution: data.resolution || '256x256',
+    colorStyle: data.colorStyle || params?.colorStyle || 'natural',
   }
 }

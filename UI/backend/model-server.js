@@ -60,6 +60,7 @@ async function forwardToFlaskColorizer(payload) {
   const upload = imageDataURLToUpload(payload.imageDataURL)
   const form = new FormData()
   form.append('image', upload.blob, upload.filename)
+  form.append('style', payload.params?.colorStyle || 'natural')
 
   const response = await fetch(MODEL_ENDPOINT, {
     method: 'POST',
@@ -86,6 +87,7 @@ async function forwardToFlaskColorizer(payload) {
     resolution: data.resolution || 'original',
     modelId: payload.modelId || 'unet',
     mode: data.mode,
+    colorStyle: data.style || payload.params?.colorStyle || 'natural',
     status: 'ok',
   }
 }
@@ -121,6 +123,7 @@ function createDemoInference(payload) {
     maskDataURL: payload.imageDataURL,
     resolution: 'backend demo',
     modelId: payload.modelId || 'unet',
+    colorStyle: payload.params?.colorStyle || 'natural',
     status: 'demo',
     message: 'Set MODEL_ENDPOINT to forward inference to your real model service.',
   }
