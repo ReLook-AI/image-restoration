@@ -4,10 +4,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-
-# L?NH QUAN TR?NG: Mang qu?n t? UI v?o trong relook_ai_project
-RUN cp -r UI/* relook_ai_project/
-
+# Copy n?i dung UI v?o th?ng relook_ai_project
+RUN cp -rf UI/* relook_ai_project/
 ENV PYTHONPATH=/app
-# Nh?y v?o trong th? m?c project ?? ch?y
 CMD ["gunicorn", "--bind", "0.0.0.0:10000", "--chdir", "relook_ai_project", "app:app"]
