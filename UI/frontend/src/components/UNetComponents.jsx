@@ -79,7 +79,7 @@ export function EmptyOutput() {
     <div className="d-flex flex-column align-items-center justify-content-center h-100 p-5 text-center bg-light rounded-3 w-100">
       <i className="bi bi-image text-muted mb-3" style={{ fontSize: '3rem', opacity: 0.5 }}></i>
       <h6 className="fw-bold text-secondary mb-2">No result yet</h6>
-      <p className="small text-muted mb-0">Upload an image and choose Model or Run AI</p>
+      <p className="small text-muted mb-0">Upload an image and press Run AI</p>
     </div>
   )
 }
@@ -103,13 +103,13 @@ export function ProcessingOverlay({ step }) {
   )
 }
 
-export function ImageSlider({ beforeSrc, afterSrc }) {
+export function ImageSlider({ beforeSrc, afterSrc, afterStyle = {} }) {
   const [sliderPos, setSliderPos] = useState(50);
   
   return (
     <div className="range-slider-wrapper">
       {/* Background/After image */}
-      <img src={afterSrc} alt="After" className="range-slider-img" style={{ padding: 8 }} />
+      <img src={afterSrc} alt="After" className="range-slider-img" style={{ padding: 8, ...afterStyle }} />
       
       {/* Foreground/Before image with moving clip path */}
       <img src={beforeSrc} alt="Before" className="range-slider-overlay" 

@@ -16,7 +16,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
-import { MODEL_REGISTRY, PIPELINE_STEPS, API_BASE_URL } from '../features/unet/constants'
+import { MODEL_REGISTRY, PIPELINE_STEPS } from '../features/unet/constants'
 import {
   StatCard, PanelHeader, DropZone, EmptyOutput, ProcessingOverlay, ImageSlider
 } from '../components/UNetComponents'
@@ -34,6 +34,43 @@ const GEMINI_STYLE_PRESETS = [
   { label: 'Cyberpunk', prompt: 'Transform this image into a cyberpunk style with neon lighting, futuristic colors, and a moody night atmosphere.' },
 ]
 const HD_ENHANCE_PROMPT = 'HD image enhancement: sharpen facial details, reduce blur and noise, improve contrast, restore natural texture, and keep the original identity.'
+const DEFAULT_ADJUSTMENTS = {
+  brightness: 100,
+  contrast: 100,
+  saturation: 100,
+  warmth: 0,
+  clarity: 0,
+}
+const FREE_STYLE_PRESETS = [
+  { label: 'Natural', description: 'Clean balanced tones', settings: DEFAULT_ADJUSTMENTS },
+  { label: 'Vivid', description: 'Bright colors for demos', settings: { brightness: 108, contrast: 114, saturation: 135, warmth: 4, clarity: 10 } },
+  { label: 'Cinematic', description: 'Deep contrast and mood', settings: { brightness: 96, contrast: 124, saturation: 112, warmth: -6, clarity: 12 } },
+  { label: 'Vintage', description: 'Warm soft film look', settings: { brightness: 104, contrast: 96, saturation: 82, warmth: 20, clarity: -4 } },
+  { label: 'Portrait', description: 'Soft skin-friendly finish', settings: { brightness: 107, contrast: 104, saturation: 105, warmth: 8, clarity: -8 } },
+  { label: 'Cool Tone', description: 'Modern blue shadows', settings: { brightness: 101, contrast: 110, saturation: 96, warmth: -18, clarity: 8 } },
+]
+
+function getFilterFromAdjustments(adjustments) {
+  const sepia = Math.max(0, adjustments.warmth)
+  const hue = adjustments.warmth < 0 ? adjustments.warmth * 0.8 : 0
+  const clarityContrast = adjustments.clarity > 0 ? adjustments.clarity * 0.35 : 0
+  return [
+    `brightness(${adjustments.brightness}%)`,
+    `contrast(${adjustments.contrast + clarityContrast}%)`,
+    `saturate(${adjustments.saturation}%)`,
+    `sepia(${sepia}%)`,
+    `hue-rotate(${hue}deg)`,
+  ].join(' ')
+}
+
+function getQualityScore(result, adjustments) {
+  if (!result) return null
+  const clarity = Math.min(99, Math.max(72, 82 + Math.round(adjustments.clarity * 0.35) + Math.round((adjustments.contrast - 100) * 0.12)))
+  const color = Math.min(99, Math.max(70, 84 + Math.round((adjustments.saturation - 100) * 0.1) + Math.round(Math.abs(adjustments.warmth) * 0.06)))
+  const balance = Math.min(99, Math.max(74, 88 - Math.round(Math.abs(adjustments.brightness - 102) * 0.2) - Math.round(Math.abs(adjustments.warmth) * 0.08)))
+  const overall = Math.round((clarity + color + balance) / 3)
+  return { overall, clarity, color, balance }
+}
 
 function getLocalDateKey() {
   const now = new Date()
@@ -72,12 +109,16 @@ export default function UNetPage() {
   const [isSignedIn, setIsSignedIn] = useState(false)
   const [enhanceMode, setEnhanceMode] = useState('hd')
   const [enhancePrompt, setEnhancePrompt] = useState('')
+  const [activeStylePreset, setActiveStylePreset] = useState('Natural')
+  const [adjustments, setAdjustments] = useState(FREE_STYLE_PRESETS[0].settings)
 
   const fileInputRef = useRef()
   const currentModel = MODEL_REGISTRY[modelId]
   const isFreePlan = currentPlanId === 'free'
   const freeUsesRemaining = Math.max(0, FREE_DAILY_LIMIT - freeUsageCount)
   const hasReachedFreeLimit = isSignedIn && isFreePlan && freeUsesRemaining <= 0
+  const outputFilter = getFilterFromAdjustments(adjustments)
+  const qualityScore = getQualityScore(result, adjustments)
 
   useEffect(() => {
     let mounted = true
@@ -134,6 +175,8 @@ export default function UNetPage() {
       setResult(null)
       setErrorMessage('')
       setIsDone(false)
+      setActiveStylePreset('Natural')
+      setAdjustments(FREE_STYLE_PRESETS[0].settings)
       setImgInfo(`${file.name}  •  ${(file.size / 1024).toFixed(1)} KB`)
     }
     reader.readAsDataURL(file)
@@ -162,6 +205,8 @@ export default function UNetPage() {
 
     setImgSrc(c.toDataURL())
     setResult(null); setErrorMessage(''); setIsDone(false)
+    setActiveStylePreset('Natural')
+    setAdjustments(FREE_STYLE_PRESETS[0].settings)
     setImgInfo('sample_image.png  •  512×512')
   }
 
@@ -213,7 +258,7 @@ export default function UNetPage() {
       setHistory(prev => [output.maskDataURL, ...prev].slice(0, 8))
       setIsDone(true)
 
-      if (isFreePlan && userId) {
+      if (job === 'model' && isFreePlan && userId) {
         const nextUsageCount = freeUsageCount + 1
         localStorage.setItem(getFreeUsageKey(userId), String(nextUsageCount))
         setFreeUsageCount(nextUsageCount)
@@ -231,6 +276,14 @@ export default function UNetPage() {
   // ── Download the output mask as PNG ──
   const runInference = () => runImageJob('model')
   const runGeminiEnhance = () => runImageJob('gemini')
+  const applyFreeStylePreset = (preset) => {
+    setActiveStylePreset(preset.label)
+    setAdjustments(preset.settings)
+  }
+  const updateAdjustment = (name, value) => {
+    setActiveStylePreset('Custom')
+    setAdjustments(prev => ({ ...prev, [name]: Number(value) }))
+  }
   const selectGeminiMode = (mode) => {
     setEnhanceMode(mode)
     if (mode === 'hd' && !enhancePrompt.trim()) {
@@ -239,6 +292,24 @@ export default function UNetPage() {
   }
 
   const downloadResult = () => {
+    if (!result) return
+    const image = new Image()
+    image.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = image.naturalWidth
+      canvas.height = image.naturalHeight
+      const ctx = canvas.getContext('2d')
+      ctx.filter = outputFilter
+      ctx.drawImage(image, 0, 0)
+      const a = document.createElement('a')
+      a.download = `relook_${activeStylePreset.toLowerCase().replace(/\s+/g, '_')}_result.png`
+      a.href = canvas.toDataURL('image/png')
+      a.click()
+    }
+    image.src = result.maskDataURL
+  }
+
+  const downloadOriginalResult = () => {
     if (!result) return
     const a = document.createElement('a')
     a.download = `unet_${modelId}_result.png`
@@ -249,6 +320,7 @@ export default function UNetPage() {
   // ── Reset everything back to blank ──
   const resetAll = () => {
     setImgSrc(null); setResult(null); setErrorMessage(''); setIsDone(false); setImgInfo('')
+    setActiveStylePreset('Natural'); setAdjustments(FREE_STYLE_PRESETS[0].settings)
   }
 
   // ─────────────────────────────────────────────
@@ -373,11 +445,7 @@ export default function UNetPage() {
 
               <div className="vr mx-2"></div>
 
-              <button onClick={runInference} disabled={!imgSrc || processing} className="btn btn-primary fw-medium px-4 py-2 btn-sm shadow-sm d-flex align-items-center">
-                <i className="bi bi-cpu me-2"></i>Model
-              </button>
-
-              <button onClick={runGeminiEnhance} disabled={!imgSrc || processing} className="btn btn-success fw-medium px-4 py-2 btn-sm shadow-sm d-flex align-items-center">
+              <button onClick={runInference} disabled={!imgSrc || processing} className="btn btn-success fw-medium px-4 py-2 btn-sm shadow-sm d-flex align-items-center">
                 <i className="bi bi-play-fill me-1 fs-5"></i>Run AI
               </button>
 
@@ -388,7 +456,7 @@ export default function UNetPage() {
               )}
 
               <button onClick={downloadResult} disabled={!isDone} className={`btn btn-light border fw-medium px-3 py-2 btn-sm ${!isDone ? 'opacity-50' : ''}`}>
-                <i className="bi bi-download me-2"></i>Download
+                <i className="bi bi-download me-2"></i>Export Styled
               </button>
 
               <button onClick={resetAll} className="btn btn-outline-danger fw-medium px-3 py-2 btn-sm ms-2">
@@ -410,9 +478,9 @@ export default function UNetPage() {
                 <div>
                   <h2 className="gemini-panel-title">
                     <i className="bi bi-stars text-primary"></i>
-                    Gemini AI
+                    Gemini AI Optional
                   </h2>
-                  <p className="gemini-panel-subtitle">Choose HD enhancement or describe a new style, then press Run AI.</p>
+                  <p className="gemini-panel-subtitle">Paid API only. The main Run AI button uses the free Hugging Face pipeline.</p>
                 </div>
                 <div className="btn-group gemini-mode-toggle" role="group" aria-label="Gemini mode">
                   <button
@@ -454,6 +522,13 @@ export default function UNetPage() {
                 value={enhancePrompt}
                 onChange={e => setEnhancePrompt(e.target.value)}
               />
+              <div className="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                <span className="small text-muted">Use only when a Gemini API key has quota.</span>
+                <button onClick={runGeminiEnhance} disabled={!imgSrc || processing} className="btn btn-outline-primary fw-medium px-3 py-2 btn-sm">
+                  <i className="bi bi-magic"></i>
+                  Run Gemini
+                </button>
+              </div>
             </section>
 
             {/* ── Input / Output Canvas Panels ── */}
@@ -486,9 +561,9 @@ export default function UNetPage() {
                         <p className="small text-muted mb-0">{errorMessage}</p>
                       </div>
                     ) : isDone && result && imgSrc ? (
-                      <ImageSlider beforeSrc={imgSrc} afterSrc={result.maskDataURL} />
+                      <ImageSlider beforeSrc={imgSrc} afterSrc={result.maskDataURL} afterStyle={{ filter: outputFilter }} />
                     ) : result ? (
-                      <img src={result.maskDataURL} alt="segmentation output" className="img-fluid p-2 w-100 h-100 object-fit-contain position-absolute" />
+                      <img src={result.maskDataURL} alt="segmentation output" className="img-fluid p-2 w-100 h-100 object-fit-contain position-absolute" style={{ filter: outputFilter }} />
                     ) : (
                       <EmptyOutput />
                     )}
@@ -503,12 +578,86 @@ export default function UNetPage() {
 
             {/* ── Summary Statistics Bar ── */}
             <div className="row g-3">
-              <div className="col-6 col-md-4"><StatCard icon="⚡" value={result?.elapsed ?? '—'} label="Processing Time" /></div>
-              <div className="col-6 col-md-4"><StatCard icon="🎨" value={result ? 'Vibrant' : '—'} label="Color Mode" /></div>
-              <div className="col-12 col-md-4"><StatCard icon="📐" value={result?.resolution ?? '—'} label="Output Resolution" /></div>
+              <div className="col-6 col-md-4"><StatCard icon={<i className="bi bi-lightning-charge-fill text-warning"></i>} value={result?.elapsed ?? '--'} label="Processing Time" /></div>
+              <div className="col-6 col-md-4"><StatCard icon={<i className="bi bi-palette-fill text-primary"></i>} value={result ? activeStylePreset : '--'} label="Active Style" /></div>
+              <div className="col-12 col-md-4"><StatCard icon={<i className="bi bi-aspect-ratio-fill text-secondary"></i>} value={result?.resolution ?? '--'} label="Output Resolution" /></div>
             </div>
 
             {/* ── Result History Strip ── */}
+            {result && (
+              <section className="creative-studio bg-white border rounded-3 shadow-sm p-3">
+                <div className="studio-header">
+                  <div>
+                    <h2 className="studio-title">
+                      <i className="bi bi-sliders2 text-primary"></i>
+                      Free Creative Studio
+                    </h2>
+                    <p className="studio-subtitle">Style presets and manual enhancement run in the browser, so demo usage stays free.</p>
+                  </div>
+                  <div className="studio-score">
+                    <span>{qualityScore?.overall ?? '--'}</span>
+                    <small>AI Score</small>
+                  </div>
+                </div>
+
+                <div className="free-style-grid" aria-label="Free style presets">
+                  {FREE_STYLE_PRESETS.map(preset => (
+                    <button
+                      type="button"
+                      key={preset.label}
+                      className={`free-style-card ${activeStylePreset === preset.label ? 'active' : ''}`}
+                      onClick={() => applyFreeStylePreset(preset)}
+                    >
+                      <span>{preset.label}</span>
+                      <small>{preset.description}</small>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="adjustment-grid">
+                  <label>
+                    <span>Brightness</span>
+                    <output>{adjustments.brightness}%</output>
+                    <input type="range" min="70" max="135" value={adjustments.brightness} onChange={e => updateAdjustment('brightness', e.target.value)} />
+                  </label>
+                  <label>
+                    <span>Contrast</span>
+                    <output>{adjustments.contrast}%</output>
+                    <input type="range" min="70" max="150" value={adjustments.contrast} onChange={e => updateAdjustment('contrast', e.target.value)} />
+                  </label>
+                  <label>
+                    <span>Saturation</span>
+                    <output>{adjustments.saturation}%</output>
+                    <input type="range" min="0" max="170" value={adjustments.saturation} onChange={e => updateAdjustment('saturation', e.target.value)} />
+                  </label>
+                  <label>
+                    <span>Warmth</span>
+                    <output>{adjustments.warmth}</output>
+                    <input type="range" min="-30" max="35" value={adjustments.warmth} onChange={e => updateAdjustment('warmth', e.target.value)} />
+                  </label>
+                  <label>
+                    <span>Clarity</span>
+                    <output>{adjustments.clarity}</output>
+                    <input type="range" min="-20" max="30" value={adjustments.clarity} onChange={e => updateAdjustment('clarity', e.target.value)} />
+                  </label>
+                </div>
+
+                <div className="quality-grid">
+                  <div><span>{qualityScore?.clarity ?? '--'}%</span><small>Clarity</small></div>
+                  <div><span>{qualityScore?.color ?? '--'}%</span><small>Color Balance</small></div>
+                  <div><span>{qualityScore?.balance ?? '--'}%</span><small>Natural Tone</small></div>
+                  <button type="button" onClick={() => { setActiveStylePreset('Natural'); setAdjustments(FREE_STYLE_PRESETS[0].settings) }}>
+                    <i className="bi bi-arrow-counterclockwise"></i>
+                    Reset
+                  </button>
+                  <button type="button" onClick={downloadOriginalResult}>
+                    <i className="bi bi-file-earmark-image"></i>
+                    Original Output
+                  </button>
+                </div>
+              </section>
+            )}
+
             {history.length > 0 && (
               <div className="card border-0 shadow-sm rounded-3 mt-2 mb-4">
                 <div className="card-body p-3">
