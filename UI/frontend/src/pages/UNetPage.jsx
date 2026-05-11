@@ -65,11 +65,69 @@ function getFilterFromAdjustments(adjustments) {
 
 function getQualityScore(result, adjustments) {
   if (!result) return null
-  const clarity = Math.min(99, Math.max(72, 82 + Math.round(adjustments.clarity * 0.35) + Math.round((adjustments.contrast - 100) * 0.12)))
-  const color = Math.min(99, Math.max(70, 84 + Math.round((adjustments.saturation - 100) * 0.1) + Math.round(Math.abs(adjustments.warmth) * 0.06)))
-  const balance = Math.min(99, Math.max(74, 88 - Math.round(Math.abs(adjustments.brightness - 102) * 0.2) - Math.round(Math.abs(adjustments.warmth) * 0.08)))
+  const hdBoost = result.hdEnhanced ? 8 : 0
+  const clarity = Math.min(99, Math.max(72, 82 + hdBoost + Math.round(adjustments.clarity * 0.35) + Math.round((adjustments.contrast - 100) * 0.12)))
+  const color = Math.min(99, Math.max(70, 84 + Math.round(hdBoost * 0.35) + Math.round((adjustments.saturation - 100) * 0.1) + Math.round(Math.abs(adjustments.warmth) * 0.06)))
+  const balance = Math.min(99, Math.max(74, 88 + Math.round(hdBoost * 0.25) - Math.round(Math.abs(adjustments.brightness - 102) * 0.2) - Math.round(Math.abs(adjustments.warmth) * 0.08)))
   const overall = Math.round((clarity + color + balance) / 3)
   return { overall, clarity, color, balance }
+}
+
+function loadCanvasImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image()
+    image.onload = () => resolve(image)
+    image.onerror = () => reject(new Error('Could not load the image for HD enhancement.'))
+    image.src = src
+  })
+}
+
+async function createFreeHdImage(imageDataURL) {
+  const image = await loadCanvasImage(imageDataURL)
+  const maxSide = Math.max(image.naturalWidth, image.naturalHeight)
+  const scale = Math.max(1, Math.min(2, 2048 / maxSide))
+  const width = Math.round(image.naturalWidth * scale)
+  const height = Math.round(image.naturalHeight * scale)
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  ctx.filter = 'brightness(104%) contrast(112%) saturate(108%)'
+  ctx.drawImage(image, 0, 0, width, height)
+
+  const imageData = ctx.getImageData(0, 0, width, height)
+  const src = imageData.data
+  const copy = new Uint8ClampedArray(src)
+  const strength = 0.55
+
+  for (let y = 1; y < height - 1; y += 1) {
+    for (let x = 1; x < width - 1; x += 1) {
+      const idx = (y * width + x) * 4
+      const top = ((y - 1) * width + x) * 4
+      const bottom = ((y + 1) * width + x) * 4
+      const left = (y * width + x - 1) * 4
+      const right = (y * width + x + 1) * 4
+
+      for (let channel = 0; channel < 3; channel += 1) {
+        const sharpened = copy[idx + channel] * (1 + 4 * strength)
+          - copy[top + channel] * strength
+          - copy[bottom + channel] * strength
+          - copy[left + channel] * strength
+          - copy[right + channel] * strength
+        src[idx + channel] = Math.max(0, Math.min(255, sharpened))
+      }
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0)
+
+  return {
+    maskDataURL: canvas.toDataURL('image/png'),
+    resolution: `${width}x${height} HD`,
+  }
 }
 
 function getLocalDateKey() {
@@ -284,6 +342,32 @@ export default function UNetPage() {
     setActiveStylePreset('Custom')
     setAdjustments(prev => ({ ...prev, [name]: Number(value) }))
   }
+  const runFreeHdEnhance = async () => {
+    if (!result?.maskDataURL) return
+
+    setProcessing(true)
+    setErrorMessage('')
+    setProcStep({ pct: 72, label: 'Enhancing HD details', sub: 'Upscaling, sharpening and balancing tones in your browser.' })
+
+    try {
+      const enhanced = await createFreeHdImage(result.maskDataURL)
+      const nextResult = {
+        ...result,
+        ...enhanced,
+        hdEnhanced: true,
+      }
+      setResult(nextResult)
+      setActiveStylePreset('HD Enhance')
+      setAdjustments({ brightness: 104, contrast: 112, saturation: 108, warmth: 0, clarity: 22 })
+      setHistory(prev => [enhanced.maskDataURL, ...prev].slice(0, 8))
+      setIsDone(true)
+    } catch (err) {
+      console.error('HD enhancement failed:', err)
+      setErrorMessage(err.message || 'HD enhancement failed. Please try another image.')
+    } finally {
+      setProcessing(false)
+    }
+  }
   const selectGeminiMode = (mode) => {
     setEnhanceMode(mode)
     if (mode === 'hd' && !enhancePrompt.trim()) {
@@ -457,6 +541,10 @@ export default function UNetPage() {
 
               <button onClick={downloadResult} disabled={!isDone} className={`btn btn-light border fw-medium px-3 py-2 btn-sm ${!isDone ? 'opacity-50' : ''}`}>
                 <i className="bi bi-download me-2"></i>Export Styled
+              </button>
+
+              <button onClick={runFreeHdEnhance} disabled={!isDone || processing} className={`btn btn-outline-primary fw-medium px-3 py-2 btn-sm ${!isDone ? 'opacity-50' : ''}`}>
+                <i className="bi bi-badge-hd me-2"></i>HD Enhance
               </button>
 
               <button onClick={resetAll} className="btn btn-outline-danger fw-medium px-3 py-2 btn-sm ms-2">
@@ -646,6 +734,10 @@ export default function UNetPage() {
                   <div><span>{qualityScore?.clarity ?? '--'}%</span><small>Clarity</small></div>
                   <div><span>{qualityScore?.color ?? '--'}%</span><small>Color Balance</small></div>
                   <div><span>{qualityScore?.balance ?? '--'}%</span><small>Natural Tone</small></div>
+                  <button type="button" onClick={runFreeHdEnhance} disabled={processing}>
+                    <i className="bi bi-badge-hd"></i>
+                    {result.hdEnhanced ? 'HD Applied' : 'HD Enhance Free'}
+                  </button>
                   <button type="button" onClick={() => { setActiveStylePreset('Natural'); setAdjustments(FREE_STYLE_PRESETS[0].settings) }}>
                     <i className="bi bi-arrow-counterclockwise"></i>
                     Reset
