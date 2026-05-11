@@ -25,6 +25,15 @@ import { callImageEnhanceAPI, callModelAPI } from '../features/unet/modelApi'
 import { supabase } from '../services/supabaseClient'
 
 const FREE_DAILY_LIMIT = 5
+const GEMINI_STYLE_PRESETS = [
+  { label: 'Cinematic', prompt: 'Transform this image into a cinematic portrait with dramatic lighting, rich contrast, and natural skin tones.' },
+  { label: 'Anime', prompt: 'Transform this image into a polished anime illustration with clean line art, soft shading, and expressive colors.' },
+  { label: 'Vintage Film', prompt: 'Give this image a vintage film look with warm tones, subtle grain, and a nostalgic analog photo style.' },
+  { label: 'Studio Portrait', prompt: 'Enhance this image as a professional studio portrait with soft lighting, clear facial detail, and premium retouching.' },
+  { label: 'Watercolor', prompt: 'Transform this image into a delicate watercolor painting with soft edges, flowing pigment, and an artistic paper texture.' },
+  { label: 'Cyberpunk', prompt: 'Transform this image into a cyberpunk style with neon lighting, futuristic colors, and a moody night atmosphere.' },
+]
+const HD_ENHANCE_PROMPT = 'HD image enhancement: sharpen facial details, reduce blur and noise, improve contrast, restore natural texture, and keep the original identity.'
 
 function getLocalDateKey() {
   const now = new Date()
@@ -188,7 +197,10 @@ export default function UNetPage() {
       // Replace callModelAPI() with your actual model.
       // ───────────────────────────────────────────────
       const output = job === 'gemini'
-        ? await callImageEnhanceAPI(imgSrc, { mode: enhanceMode, prompt: enhancePrompt })
+        ? await callImageEnhanceAPI(imgSrc, {
+          mode: enhanceMode,
+          prompt: enhanceMode === 'hd' ? (enhancePrompt.trim() || HD_ENHANCE_PROMPT) : enhancePrompt,
+        })
         : await callModelAPI(imgSrc, modelId, {})
 
       clearInterval(stepInterval)
@@ -219,6 +231,12 @@ export default function UNetPage() {
   // ── Download the output mask as PNG ──
   const runInference = () => runImageJob('model')
   const runGeminiEnhance = () => runImageJob('gemini')
+  const selectGeminiMode = (mode) => {
+    setEnhanceMode(mode)
+    if (mode === 'hd' && !enhancePrompt.trim()) {
+      setEnhancePrompt('HD Image')
+    }
+  }
 
   const downloadResult = () => {
     if (!result) return
@@ -399,24 +417,40 @@ export default function UNetPage() {
                 <div className="btn-group gemini-mode-toggle" role="group" aria-label="Gemini mode">
                   <button
                     type="button"
-                    onClick={() => setEnhanceMode('hd')}
+                    onClick={() => selectGeminiMode('hd')}
                     className={`btn btn-sm ${enhanceMode === 'hd' ? 'btn-primary' : 'btn-outline-primary'}`}
                   >
-                    HD
+                    <i className="bi bi-check2-circle"></i>
+                    HD Image
                   </button>
                   <button
                     type="button"
-                    onClick={() => setEnhanceMode('style')}
+                    onClick={() => selectGeminiMode('style')}
                     className={`btn btn-sm ${enhanceMode === 'style' ? 'btn-primary' : 'btn-outline-primary'}`}
                   >
+                    <i className="bi bi-palette"></i>
                     Style
                   </button>
                 </div>
               </div>
+              {enhanceMode === 'style' && (
+                <div className="gemini-presets" aria-label="Popular Gemini style presets">
+                  {GEMINI_STYLE_PRESETS.map(preset => (
+                    <button
+                      type="button"
+                      key={preset.label}
+                      className={`gemini-preset-chip ${enhancePrompt === preset.prompt ? 'active' : ''}`}
+                      onClick={() => setEnhancePrompt(preset.prompt)}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              )}
               <textarea
                 className="form-control form-control-sm gemini-prompt"
                 rows="2"
-                placeholder={enhanceMode === 'style' ? 'Describe the new style...' : 'Optional enhancement note, e.g. sharpen face and restore detail'}
+                placeholder={enhanceMode === 'style' ? 'Choose a style above or describe your own...' : 'HD Image'}
                 value={enhancePrompt}
                 onChange={e => setEnhancePrompt(e.target.value)}
               />
