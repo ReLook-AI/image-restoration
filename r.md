@@ -1,1 +1,0 @@
- & "c:/Users/Admin/Downloads/deadlineNguyenKimThu/.venv/Scripts/python.exe" "c:/Users/Admin/Downloads/deadlineNguyenKimThu/relook_ai_project/app.py"
