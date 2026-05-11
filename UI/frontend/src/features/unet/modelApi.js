@@ -21,6 +21,21 @@ function dataURLToBlob(imageDataURL) {
   return new Blob([bytes], { type: mimeType })
 }
 
+function normalizeGeminiError(data, fallbackStatus) {
+  const rawMessage = [data?.message, data?.details].filter(Boolean).join(' ')
+  const lowerMessage = rawMessage.toLowerCase()
+
+  if (lowerMessage.includes('quota') || lowerMessage.includes('rate-limit') || lowerMessage.includes('rate limits')) {
+    return 'Gemini AI quota is exhausted for this API key. Please add billing/quota in Google AI Studio or use another Gemini key, then try Run AI again.'
+  }
+
+  if (lowerMessage.includes('api key') || lowerMessage.includes('permission_denied') || lowerMessage.includes('unauthorized')) {
+    return 'Gemini API key is missing or invalid. Please update GEMINI_API_KEY in Hugging Face Space secrets.'
+  }
+
+  return data?.message || `Gemini request failed with HTTP ${fallbackStatus}`
+}
+
 export async function callModelAPI(imageDataURL, modelId, params) {
   const response = await fetch(MODEL_API_URL, {
     method: 'POST',
@@ -66,9 +81,7 @@ export async function callImageEnhanceAPI(imageDataURL, { mode = 'hd', prompt = 
   }
 
   if (!response.ok) {
-    const details = data?.details ? `: ${data.details}` : ''
-    const message = data?.message || `Gemini request failed with HTTP ${response.status}`
-    throw new Error(`${message}${details}`)
+    throw new Error(normalizeGeminiError(data, response.status))
   }
 
   return {

@@ -304,6 +304,27 @@ function extractGeminiImage(responseData) {
   }
 }
 
+function createGeminiError(response, data) {
+  const details = data?.error?.message || `HTTP ${response.status}`
+  const normalized = details.toLowerCase()
+
+  if (normalized.includes('quota') || normalized.includes('rate-limit') || normalized.includes('rate limits')) {
+    return new HttpError(
+      429,
+      'Gemini AI quota is exhausted for this API key. Please add billing/quota in Google AI Studio or use another Gemini key.',
+    )
+  }
+
+  if (normalized.includes('api key') || normalized.includes('permission_denied') || normalized.includes('unauthorized')) {
+    return new HttpError(
+      401,
+      'Gemini API key is missing or invalid. Please update GEMINI_API_KEY in backend secrets.',
+    )
+  }
+
+  return new HttpError(502, 'Gemini API request failed', details)
+}
+
 async function enhanceImageWithGemini({ file, mode, prompt }) {
   const apiKey = process.env.GEMINI_API_KEY
 
@@ -342,7 +363,7 @@ async function enhanceImageWithGemini({ file, mode, prompt }) {
   }
 
   if (!response.ok) {
-    throw new HttpError(502, 'Gemini API request failed', data?.error?.message || `HTTP ${response.status}`)
+    throw createGeminiError(response, data)
   }
 
   const image = extractGeminiImage(data)
