@@ -408,23 +408,23 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'POST' && url.pathname === '/api/segment') {
-      return handleSegment(req, res)
+      return await handleSegment(req, res)
     }
 
     if (req.method === 'POST' && url.pathname === '/api/image/enhance') {
-      return handleImageEnhance(req, res)
+      return await handleImageEnhance(req, res)
     }
 
     if (req.method === 'POST' && url.pathname === '/api/payments/create') {
-      return handlePaymentCreate(req, res)
+      return await handlePaymentCreate(req, res)
     }
 
     if (req.method === 'GET' && url.pathname === '/api/payments/status') {
-      return handlePaymentStatus(req, res, url)
+      return await handlePaymentStatus(req, res, url)
     }
 
     if (req.method === 'POST' && url.pathname === '/api/payments/webhook') {
-      return handlePaymentWebhookRequest(req, res)
+      return await handlePaymentWebhookRequest(req, res)
     }
 
     return sendJson(res, 404, { message: 'Not found' })

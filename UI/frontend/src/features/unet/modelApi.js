@@ -56,10 +56,19 @@ export async function callImageEnhanceAPI(imageDataURL, { mode = 'hd', prompt = 
     body: formData,
   })
 
-  const data = await response.json().catch(() => ({}))
+  const responseText = await response.text()
+  let data = {}
+
+  try {
+    data = responseText ? JSON.parse(responseText) : {}
+  } catch {
+    data = { message: responseText }
+  }
 
   if (!response.ok) {
-    throw new Error(data?.message || 'Gemini image enhancement failed')
+    const details = data?.details ? `: ${data.details}` : ''
+    const message = data?.message || `Gemini request failed with HTTP ${response.status}`
+    throw new Error(`${message}${details}`)
   }
 
   return {

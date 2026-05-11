@@ -335,35 +335,6 @@ export default function UNetPage() {
                </p>
             </div>
 
-            <div className="bg-light rounded-4 p-4 border border-1 shadow-sm">
-              <h6 className="fw-bold text-dark mb-3 d-flex align-items-center" style={{ fontSize: '0.85rem' }}>
-                <i className="bi bi-stars me-2 fs-5 text-primary"></i>Gemini AI
-              </h6>
-              <div className="btn-group w-100 mb-3" role="group" aria-label="Gemini mode">
-                <button
-                  type="button"
-                  onClick={() => setEnhanceMode('hd')}
-                  className={`btn btn-sm ${enhanceMode === 'hd' ? 'btn-primary' : 'btn-outline-primary'}`}
-                >
-                  HD
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEnhanceMode('style')}
-                  className={`btn btn-sm ${enhanceMode === 'style' ? 'btn-primary' : 'btn-outline-primary'}`}
-                >
-                  Style
-                </button>
-              </div>
-              <textarea
-                className="form-control form-control-sm"
-                rows="3"
-                placeholder={enhanceMode === 'style' ? 'Describe the new style...' : 'Optional enhancement note...'}
-                value={enhancePrompt}
-                onChange={e => setEnhancePrompt(e.target.value)}
-              />
-            </div>
-            
           </aside>
 
           {/* ════════════════════════════════════════
@@ -415,6 +386,41 @@ export default function UNetPage() {
                 <Link to="/payment" className="btn btn-primary btn-sm">Upgrade for unlimited</Link>
               </div>
             )}
+
+            <section className="gemini-panel bg-white border rounded-3 shadow-sm p-3">
+              <div className="gemini-panel-header">
+                <div>
+                  <h2 className="gemini-panel-title">
+                    <i className="bi bi-stars text-primary"></i>
+                    Gemini AI
+                  </h2>
+                  <p className="gemini-panel-subtitle">Choose HD enhancement or describe a new style, then press Run AI.</p>
+                </div>
+                <div className="btn-group gemini-mode-toggle" role="group" aria-label="Gemini mode">
+                  <button
+                    type="button"
+                    onClick={() => setEnhanceMode('hd')}
+                    className={`btn btn-sm ${enhanceMode === 'hd' ? 'btn-primary' : 'btn-outline-primary'}`}
+                  >
+                    HD
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEnhanceMode('style')}
+                    className={`btn btn-sm ${enhanceMode === 'style' ? 'btn-primary' : 'btn-outline-primary'}`}
+                  >
+                    Style
+                  </button>
+                </div>
+              </div>
+              <textarea
+                className="form-control form-control-sm gemini-prompt"
+                rows="2"
+                placeholder={enhanceMode === 'style' ? 'Describe the new style...' : 'Optional enhancement note, e.g. sharpen face and restore detail'}
+                value={enhancePrompt}
+                onChange={e => setEnhancePrompt(e.target.value)}
+              />
+            </section>
 
             {/* ── Input / Output Canvas Panels ── */}
             <div className="row g-3">
