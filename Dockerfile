@@ -4,4 +4,6 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "relook_ai_project.app:app"]
+# Th?m d?ng n?y ?? Python t?m th?y c?c file trong th? m?c relook_ai_project
+ENV PYTHONPATH=/app/relook_ai_project
+CMD ["gunicorn", "--bind", "0.0.0.0:10000", "--chdir", "relook_ai_project", "app:app"]
