@@ -520,7 +520,7 @@ export default function PaymentPage() {
             {checkoutStep === 'details' && (
               <div className="form-group" style={{ marginTop: 16 }}>
               <label>Promo Code</label>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div className="promo-row" style={{ display: 'flex', gap: 8 }}>
                 <input type="text" value={promo} onChange={e => setPromo(e.target.value)} placeholder="Enter promo code" onKeyDown={e => e.key === 'Enter' && applyPromo()} style={{ flex: 1 }} />
                 <button className="btn btn-outline" onClick={applyPromo} style={{ flexShrink: 0, borderRadius: 'var(--radius-sm)' }}>Apply</button>
               </div>

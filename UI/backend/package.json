@@ -7,5 +7,8 @@
     "dev": "node model-server.js",
     "start": "node model-server.js",
     "check": "node --check model-server.js"
+  },
+  "dependencies": {
+    "busboy": "^1.6.0"
   }
 }

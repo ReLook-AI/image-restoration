@@ -21,7 +21,7 @@ import {
   StatCard, PanelHeader, DropZone, EmptyOutput, ProcessingOverlay, ImageSlider
 } from '../components/UNetComponents'
 import { Footer } from '../components/HomeComponents'
-import { callModelAPI } from '../features/unet/modelApi'
+import { callImageEnhanceAPI, callModelAPI } from '../features/unet/modelApi'
 import { supabase } from '../services/supabaseClient'
 
 const FREE_DAILY_LIMIT = 5
@@ -61,6 +61,8 @@ export default function UNetPage() {
   const [userId, setUserId] = useState('')
   const [freeUsageCount, setFreeUsageCount] = useState(0)
   const [isSignedIn, setIsSignedIn] = useState(false)
+  const [enhanceMode, setEnhanceMode] = useState('hd')
+  const [enhancePrompt, setEnhancePrompt] = useState('')
 
   const fileInputRef = useRef()
   const currentModel = MODEL_REGISTRY[modelId]
@@ -112,7 +114,11 @@ export default function UNetPage() {
 
   // ── Load a user-selected image file ──
   const loadFile = (file) => {
-    if (!file || !file.type.startsWith('image/')) return
+    if (!file) return
+    if (!['image/png', 'image/jpeg'].includes(file.type)) {
+      setErrorMessage('Please upload a PNG or JPEG image.')
+      return
+    }
     const reader = new FileReader()
     reader.onload = ev => {
       setImgSrc(ev.target.result)
@@ -151,7 +157,7 @@ export default function UNetPage() {
   }
 
   // ── Orchestrate model inference ──
-  const runInference = async () => {
+  const runImageJob = async (job) => {
     if (!imgSrc) return
     if (!isSignedIn) {
       setErrorMessage('Please sign in to use the restoration studio.')
@@ -181,7 +187,9 @@ export default function UNetPage() {
       // 👉 MODEL INTEGRATION POINT
       // Replace callModelAPI() with your actual model.
       // ───────────────────────────────────────────────
-      const output = await callModelAPI(imgSrc, modelId, {})
+      const output = job === 'gemini'
+        ? await callImageEnhanceAPI(imgSrc, { mode: enhanceMode, prompt: enhancePrompt })
+        : await callModelAPI(imgSrc, modelId, {})
 
       clearInterval(stepInterval)
       setProcStep(PIPELINE_STEPS.at(-1))
@@ -209,6 +217,9 @@ export default function UNetPage() {
   }
 
   // ── Download the output mask as PNG ──
+  const runInference = () => runImageJob('model')
+  const runGeminiEnhance = () => runImageJob('gemini')
+
   const downloadResult = () => {
     if (!result) return
     const a = document.createElement('a')
@@ -266,12 +277,12 @@ export default function UNetPage() {
     <>
       <Navbar />
 
-      <div className="container-fluid bg-light" style={{ minHeight: 'calc(100vh - 70px)' }}>
-        <div className="row h-100">
+      <div className="container-fluid bg-light unet-page">
+        <div className="row h-100 unet-shell">
           {/* ════════════════════════════════════════
               SIDEBAR – Model, Parameters, Options
               ════════════════════════════════════════ */}
-          <aside className="col-lg-3 col-xl-2 bg-white border-end py-4 px-3 d-flex flex-column gap-4" style={{ height: 'calc(100vh - 70px)', overflowY: 'auto' }}>
+          <aside className="col-lg-3 col-xl-2 bg-white border-end py-4 px-3 d-flex flex-column gap-4 unet-sidebar">
             
             <div>
               <h6 className="text-uppercase text-muted fw-bold mb-3" style={{ fontSize: '0.75rem', letterSpacing: '1px' }}>
@@ -323,20 +334,49 @@ export default function UNetPage() {
                  Upload any black & white or grayscale image. The AI will analyze the semantic context and intelligently infuse realistic, vibrant colors in high resolution.
                </p>
             </div>
+
+            <div className="bg-light rounded-4 p-4 border border-1 shadow-sm">
+              <h6 className="fw-bold text-dark mb-3 d-flex align-items-center" style={{ fontSize: '0.85rem' }}>
+                <i className="bi bi-stars me-2 fs-5 text-primary"></i>Gemini AI
+              </h6>
+              <div className="btn-group w-100 mb-3" role="group" aria-label="Gemini mode">
+                <button
+                  type="button"
+                  onClick={() => setEnhanceMode('hd')}
+                  className={`btn btn-sm ${enhanceMode === 'hd' ? 'btn-primary' : 'btn-outline-primary'}`}
+                >
+                  HD
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEnhanceMode('style')}
+                  className={`btn btn-sm ${enhanceMode === 'style' ? 'btn-primary' : 'btn-outline-primary'}`}
+                >
+                  Style
+                </button>
+              </div>
+              <textarea
+                className="form-control form-control-sm"
+                rows="3"
+                placeholder={enhanceMode === 'style' ? 'Describe the new style...' : 'Optional enhancement note...'}
+                value={enhancePrompt}
+                onChange={e => setEnhancePrompt(e.target.value)}
+              />
+            </div>
             
           </aside>
 
           {/* ════════════════════════════════════════
               MAIN WORKSPACE
               ════════════════════════════════════════ */}
-          <main className="col-lg-9 col-xl-10 p-4 d-flex flex-column gap-3" style={{ height: 'calc(100vh - 70px)', overflowY: 'auto' }}>
+          <main className="col-lg-9 col-xl-10 p-4 d-flex flex-column gap-3 unet-main">
 
             {/* ── Toolbar ── */}
-            <div className="bg-white border rounded-3 p-2 d-flex align-items-center gap-2 flex-wrap shadow-sm">
+            <div className="bg-white border rounded-3 p-2 d-flex align-items-center gap-2 flex-wrap shadow-sm unet-toolbar">
               <button onClick={() => fileInputRef.current.click()} className="btn btn-light border fw-medium px-3 py-2 btn-sm">
                 <i className="bi bi-folder2-open me-2"></i>Upload Image
               </button>
-              <input ref={fileInputRef} type="file" accept="image/*" className="d-none" onChange={e => { loadFile(e.target.files[0]); e.target.value = '' }} />
+              <input ref={fileInputRef} type="file" accept="image/png,image/jpeg" className="d-none" onChange={e => { loadFile(e.target.files[0]); e.target.value = '' }} />
 
               <button onClick={loadSample} className="btn btn-light border fw-medium px-3 py-2 btn-sm">
                 <i className="bi bi-image me-2"></i>Sample
@@ -345,7 +385,11 @@ export default function UNetPage() {
               <div className="vr mx-2"></div>
 
               <button onClick={runInference} disabled={!imgSrc || processing} className="btn btn-primary fw-medium px-4 py-2 btn-sm shadow-sm d-flex align-items-center">
-                <i className="bi bi-play-fill me-1 fs-5"></i>Run AI Model
+                <i className="bi bi-cpu me-2"></i>Model
+              </button>
+
+              <button onClick={runGeminiEnhance} disabled={!imgSrc || processing} className="btn btn-success fw-medium px-4 py-2 btn-sm shadow-sm d-flex align-items-center">
+                <i className="bi bi-play-fill me-1 fs-5"></i>Run AI
               </button>
 
               {isFreePlan && (
@@ -362,7 +406,7 @@ export default function UNetPage() {
                 <i className="bi bi-trash3 me-2"></i>Clear
               </button>
 
-              <span className="ms-auto text-muted small px-3">{imgInfo}</span>
+              <span className="ms-auto text-muted small px-3 unet-image-info">{imgInfo}</span>
             </div>
 
             {isFreePlan && hasReachedFreeLimit && (

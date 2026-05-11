@@ -8,14 +8,10 @@ export default function LoginPage() {
   const [tab, setTab] = useState('login')
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ flex: 1, display: 'flex' }}>
+    <div className="login-page">
+      <div className="login-layout">
       {/* LEFT panel */}
-      <div style={{
-        flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
-        background: 'linear-gradient(160deg,var(--primary),var(--accent))',
-        padding: '60px 48px', color: '#fff', position: 'relative', overflow: 'hidden', minWidth: 300
-      }}>
+      <div className="login-brand-panel">
         <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'rgba(255,255,255,.06)', bottom: -180, left: -120 }} />
         <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, fontWeight: 800, fontSize: '1.4rem', color: '#fff', marginBottom: 48, textDecoration: 'none', justifyContent: 'center' }}>
@@ -37,7 +33,7 @@ export default function LoginPage() {
       </div>
 
       {/* RIGHT panel */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 32px', background: 'linear-gradient(135deg,#e8f0fe,#f5f8ff)' }}>
+      <div className="login-form-panel">
         <div className="auth-card">
           <Link to="/" className="auth-logo"><LogoIcon size={28} />Re<span>Look</span>-AI</Link>
 
