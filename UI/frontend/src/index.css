@@ -216,13 +216,15 @@ a.nav-welcome:hover {
 .nav-profile-panel a,
 .nav-profile-panel button {
   width: 100%;
-  min-height: 54px;
+  min-height: 58px;
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) 18px;
+  grid-template-columns: 34px minmax(0, 1fr) 20px;
   align-items: center;
   gap: 12px;
   border: 0;
   border-bottom: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0 12px;
   background: transparent;
   color: var(--text);
   text-decoration: none;
@@ -231,12 +233,11 @@ a.nav-welcome:hover {
   font-size: .96rem;
   font-weight: 800;
   cursor: pointer;
-  transition: background .2s ease, transform .2s ease;
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease;
 }
 .nav-profile-panel a:hover,
 .nav-profile-panel button:hover {
-  background: var(--panel-soft);
-  transform: translateX(3px);
+  background: color-mix(in srgb, var(--accent) 8%, var(--panel-soft));
 }
 .nav-profile-panel a i:first-child,
 .nav-profile-panel button i:first-child {
@@ -247,7 +248,7 @@ a.nav-welcome:hover {
   color: var(--muted);
 }
 .nav-profile-panel button {
-  grid-template-columns: 28px minmax(0, 1fr);
+  grid-template-columns: 34px minmax(0, 1fr);
   margin-top: 12px;
   border: 1px solid color-mix(in srgb, #e11d48 34%, var(--border));
   border-radius: 14px;
@@ -829,16 +830,18 @@ a.nav-welcome:hover {
   margin-top: 8px;
   display: flex;
   flex-direction: column;
+  gap: 8px;
 }
 .profile-redesign-menu button {
   width: 100%;
-  min-height: 72px;
+  min-height: 70px;
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) 28px;
+  grid-template-columns: 44px minmax(0, 1fr) 24px;
   align-items: center;
-  gap: 14px;
-  border: 0;
-  border-bottom: 1px solid var(--border);
+  gap: 16px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  padding: 0 18px;
   background: transparent;
   color: var(--text);
   text-align: left;
@@ -846,21 +849,19 @@ a.nav-welcome:hover {
   font-size: 1.08rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background .2s ease, transform .2s ease;
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease;
 }
 .profile-redesign-menu button:hover {
   background: color-mix(in srgb, var(--accent) 8%, var(--panel-soft));
-  transform: translateX(3px);
+  border-color: color-mix(in srgb, var(--accent) 16%, var(--border));
 }
 .profile-redesign-menu button.active {
   background: color-mix(in srgb, var(--accent) 14%, var(--panel-soft));
-  box-shadow: inset 4px 0 0 var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--border));
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 .profile-redesign-menu button.featured {
-  margin-inline: -30px;
-  padding-inline: 30px;
   background: transparent;
-  border-bottom: 0;
 }
 .profile-redesign-menu button.featured:hover {
   background: color-mix(in srgb, var(--accent) 8%, var(--panel-soft));
@@ -871,6 +872,7 @@ a.nav-welcome:hover {
 .profile-redesign-menu i:first-child {
   color: var(--accent);
   font-size: 1.25rem;
+  justify-self: center;
 }
 .profile-redesign-menu .featured i:first-child {
   color: var(--accent);
@@ -878,7 +880,7 @@ a.nav-welcome:hover {
 .profile-redesign-menu i:last-child {
   justify-self: end;
   color: var(--muted);
-  font-size: 1.5rem;
+  font-size: 1.35rem;
 }
 .profile-redesign-logout {
   width: 100%;
@@ -1105,7 +1107,7 @@ a.nav-welcome:hover {
     justify-content: center;
   }
   .profile-redesign-menu button.featured {
-    margin-inline: -18px;
+    margin-inline: 0;
     padding-inline: 18px;
   }
   .profile-redesign-tabs {
