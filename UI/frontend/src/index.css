@@ -849,20 +849,24 @@ a.nav-welcome:hover {
   transition: background .2s ease, transform .2s ease;
 }
 .profile-redesign-menu button:hover {
-  background: var(--panel-soft);
+  background: color-mix(in srgb, var(--accent) 8%, var(--panel-soft));
   transform: translateX(3px);
 }
 .profile-redesign-menu button.active {
-  background: var(--panel-soft);
+  background: color-mix(in srgb, var(--accent) 14%, var(--panel-soft));
+  box-shadow: inset 4px 0 0 var(--accent);
 }
 .profile-redesign-menu button.featured {
   margin-inline: -30px;
   padding-inline: 30px;
-  background: color-mix(in srgb, var(--accent) 12%, var(--panel-soft));
+  background: transparent;
   border-bottom: 0;
 }
+.profile-redesign-menu button.featured:hover {
+  background: color-mix(in srgb, var(--accent) 8%, var(--panel-soft));
+}
 .profile-redesign-menu button.featured.active {
-  background: color-mix(in srgb, var(--accent) 18%, var(--panel-soft));
+  background: color-mix(in srgb, var(--accent) 14%, var(--panel-soft));
 }
 .profile-redesign-menu i:first-child {
   color: var(--accent);
@@ -948,7 +952,7 @@ a.nav-welcome:hover {
 }
 .profile-redesign-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
   gap: 16px;
   margin-bottom: 26px;
 }
@@ -972,7 +976,9 @@ a.nav-welcome:hover {
   margin-top: 9px;
   color: var(--text);
   font-size: 1rem;
+  line-height: 1.45;
   overflow-wrap: anywhere;
+  word-break: normal;
 }
 .profile-redesign-section-title {
   display: flex;
