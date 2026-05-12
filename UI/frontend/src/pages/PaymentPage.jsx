@@ -380,10 +380,10 @@ export default function PaymentPage() {
                     const isUnavailable = isCurrentPlan || isLowerPlan
 
                     return (
-                      <div key={p.id} onClick={() => !isUnavailable && setSelectedPlan(p.id)} style={{
+                      <div key={p.id} className={`payment-plan-card ${selectedPlan === p.id ? 'active' : ''} ${isUnavailable ? 'unavailable' : ''}`} onClick={() => !isUnavailable && setSelectedPlan(p.id)} style={{
                         border: `2px solid ${selectedPlan === p.id ? 'var(--accent)' : 'var(--border)'}`,
                         borderRadius: 14, padding: '16px 12px', cursor: isUnavailable ? 'not-allowed' : 'pointer', textAlign: 'center',
-                        background: selectedPlan === p.id ? 'var(--light-blue)' : '#fff',
+                        background: selectedPlan === p.id ? 'var(--light-blue)' : 'var(--panel-surface)',
                         opacity: isLowerPlan ? 0.55 : 1,
                         position: 'relative', transition: 'all .2s'
                       }}>
@@ -404,7 +404,7 @@ export default function PaymentPage() {
                 )}
               </>
             ) : (
-              <div style={{ marginBottom: 20, padding: 14, borderRadius: 'var(--radius-sm)', background: '#fff', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+              <div className="payment-panel" style={{ marginBottom: 20, padding: 14, borderRadius: 'var(--radius-sm)', background: 'var(--panel-surface)', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
                 <div>
                   <div style={{ color: 'var(--muted)', fontSize: '.78rem', fontWeight: 700, textTransform: 'uppercase' }}>Selected plan</div>
                   <div style={{ color: 'var(--primary)', fontWeight: 800 }}>{plan.name} - ${plan.price}/mo</div>
@@ -426,7 +426,7 @@ export default function PaymentPage() {
                 <button key={id} onClick={() => setPm(id)} style={{
                   padding: '8px 16px', borderRadius: 10, fontFamily: 'inherit', fontWeight: 600, fontSize: '.85rem', cursor: 'pointer',
                   border: `${pm === id ? '2px' : '1.5px'} solid ${pm === id ? 'var(--accent)' : 'var(--border)'}`,
-                  background: pm === id ? 'var(--light-blue)' : '#fff', color: pm === id ? 'var(--primary)' : 'var(--muted)'
+                  background: pm === id ? 'var(--light-blue)' : 'var(--panel-surface)', color: pm === id ? 'var(--primary)' : 'var(--muted)'
                 }}>{lbl}</button>
               ))}
             </div>
@@ -435,7 +435,7 @@ export default function PaymentPage() {
             )}
 
             {checkoutStep === 'details' && (
-              <div style={{ marginBottom: 16, padding: 14, borderRadius: 'var(--radius-sm)', background: '#fff', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+              <div className="payment-panel" style={{ marginBottom: 16, padding: 14, borderRadius: 'var(--radius-sm)', background: 'var(--panel-surface)', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
                 <div>
                   <div style={{ color: 'var(--muted)', fontSize: '.78rem', fontWeight: 700, textTransform: 'uppercase' }}>Payment method</div>
                   <div style={{ color: 'var(--primary)', fontWeight: 800 }}>{pm === 'paypal' ? 'PayPal' : 'VietQR'}</div>
