@@ -4,10 +4,10 @@ const MODEL_API_URL = import.meta.env.VITE_MODEL_API_URL || buildApiUrl('/api/se
 const IMAGE_ENHANCE_API_URL = import.meta.env.VITE_IMAGE_ENHANCE_API_URL || buildApiUrl('/api/image/enhance')
 
 function dataURLToBlob(imageDataURL) {
-  const match = /^data:(image\/(?:png|jpeg));base64,(.+)$/.exec(imageDataURL || '')
+  const match = /^data:(image\/(?:png|jpeg|webp));base64,(.+)$/.exec(imageDataURL || '')
 
   if (!match) {
-    throw new Error('Please upload a PNG or JPEG image before running Gemini AI.')
+    throw new Error('Please upload a supported image before running Gemini AI.')
   }
 
   const [, mimeType, encoded] = match
@@ -58,7 +58,7 @@ export async function callModelAPI(imageDataURL, modelId, params) {
 export async function callImageEnhanceAPI(imageDataURL, { mode = 'hd', prompt = '' } = {}) {
   const formData = new FormData()
   const imageBlob = dataURLToBlob(imageDataURL)
-  const extension = imageBlob.type === 'image/jpeg' ? 'jpg' : 'png'
+  const extension = imageBlob.type === 'image/jpeg' ? 'jpg' : imageBlob.type.split('/')[1] || 'png'
 
   formData.append('image', imageBlob, `upload.${extension}`)
   formData.append('mode', mode)

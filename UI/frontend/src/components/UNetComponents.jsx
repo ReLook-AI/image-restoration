@@ -69,7 +69,7 @@ export function DropZone() {
     <div className="d-flex flex-column align-items-center justify-content-center h-100 p-5 text-center dropzone-area rounded-3 w-100">
       <i className="bi bi-cloud-arrow-up text-primary mb-3" style={{ fontSize: '3.5rem', opacity: 0.8 }}></i>
       <h5 className="fw-bold text-dark mb-2">Drag & drop or click to upload</h5>
-      <p className="small text-muted mb-0">Supports PNG and JPG images up to 10MB</p>
+      <p className="small text-muted mb-0">Supports common image files up to 10MB</p>
     </div>
   )
 }

@@ -9,7 +9,7 @@ const MODEL_ENDPOINT = process.env.MODEL_ENDPOINT || ''
 const MAX_IMAGE_UPLOAD_SIZE = 10 * 1024 * 1024
 const GEMINI_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image'
 const GEMINI_GENERATE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent`
-const ALLOWED_IMAGE_TYPES = new Set(['image/png', 'image/jpeg'])
+const ALLOWED_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp'])
 
 class HttpError extends Error {
   constructor(status, message, details) {
@@ -61,6 +61,12 @@ function validateImageSignature(buffer, mimeType) {
       && buffer[buffer.length - 1] === 0xd9
   }
 
+  if (mimeType === 'image/webp') {
+    return buffer.length >= 12
+      && buffer.toString('ascii', 0, 4) === 'RIFF'
+      && buffer.toString('ascii', 8, 12) === 'WEBP'
+  }
+
   return false
 }
 
@@ -102,7 +108,7 @@ function parseImageUpload(req) {
       }
 
       if (!ALLOWED_IMAGE_TYPES.has(mimeType)) {
-        uploadError = new HttpError(415, 'Only image/png and image/jpeg uploads are supported')
+        uploadError = new HttpError(415, 'Only PNG, JPEG, and WebP image uploads are supported')
         file.resume()
         return
       }

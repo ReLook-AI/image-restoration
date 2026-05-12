@@ -82,6 +82,28 @@ function loadCanvasImage(src) {
   })
 }
 
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = ev => resolve(ev.target.result)
+    reader.onerror = () => reject(new Error('Could not read the selected image.'))
+    reader.readAsDataURL(file)
+  })
+}
+
+async function normalizeImageFile(file) {
+  const dataURL = await readFileAsDataURL(file)
+  const image = await loadCanvasImage(dataURL)
+  const canvas = document.createElement('canvas')
+  canvas.width = image.naturalWidth
+  canvas.height = image.naturalHeight
+  const ctx = canvas.getContext('2d')
+
+  ctx.drawImage(image, 0, 0)
+
+  return canvas.toDataURL('image/png')
+}
+
 async function createFreeHdImage(imageDataURL) {
   const image = await loadCanvasImage(imageDataURL)
   const maxSide = Math.max(image.naturalWidth, image.naturalHeight)
@@ -221,23 +243,25 @@ export default function UNetPage() {
   }, [])
 
   // ── Load a user-selected image file ──
-  const loadFile = (file) => {
+  const loadFile = async (file) => {
     if (!file) return
-    if (!['image/png', 'image/jpeg'].includes(file.type)) {
-      setErrorMessage('Please upload a PNG or JPEG image.')
+    if (!file.type?.startsWith('image/')) {
+      setErrorMessage('Please upload an image file.')
       return
     }
-    const reader = new FileReader()
-    reader.onload = ev => {
-      setImgSrc(ev.target.result)
+
+    try {
+      const normalizedImage = await normalizeImageFile(file)
+      setImgSrc(normalizedImage)
       setResult(null)
       setErrorMessage('')
       setIsDone(false)
       setActiveStylePreset('Natural')
       setAdjustments(FREE_STYLE_PRESETS[0].settings)
       setImgInfo(`${file.name}  •  ${(file.size / 1024).toFixed(1)} KB`)
+    } catch (err) {
+      setErrorMessage(err.message || 'This image type could not be opened by your browser. Please try another file.')
     }
-    reader.readAsDataURL(file)
   }
 
   // ── Generate and load a synthetic sample image ──
@@ -524,7 +548,7 @@ export default function UNetPage() {
               <button onClick={() => fileInputRef.current.click()} className="btn btn-light border fw-medium px-3 py-2 btn-sm">
                 <i className="bi bi-folder2-open me-2"></i>Upload Image
               </button>
-              <input ref={fileInputRef} type="file" accept="image/png,image/jpeg" className="d-none" onChange={e => { loadFile(e.target.files[0]); e.target.value = '' }} />
+              <input ref={fileInputRef} type="file" accept="image/*" className="d-none" onChange={e => { loadFile(e.target.files[0]); e.target.value = '' }} />
 
               <button onClick={loadSample} className="btn btn-light border fw-medium px-3 py-2 btn-sm">
                 <i className="bi bi-image me-2"></i>Sample
