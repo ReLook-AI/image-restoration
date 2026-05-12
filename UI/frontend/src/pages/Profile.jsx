@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import { Footer } from '../components/HomeComponents'
 import { supabase } from '../services/supabaseClient'
+import { deleteCurrentAccount } from '../services/accountApi'
 
 const HISTORY_TABLE_CANDIDATES = ['restored_images', 'image_history', 'images']
 
@@ -89,6 +90,7 @@ export default function Profile() {
   const [notice, setNotice] = useState('')
   const [itemToDelete, setItemToDelete] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [deletingAccount, setDeletingAccount] = useState(false)
 
   const displayName = useMemo(() => getDisplayName(user, profile), [user, profile])
   const avatarUrl = useMemo(() => getAvatarUrl(user, profile), [user, profile])
@@ -201,6 +203,20 @@ export default function Profile() {
     navigate('/')
   }
 
+  async function handleDeleteAccount() {
+    const confirmed = window.confirm('Delete your account permanently? This removes your profile and history. This cannot be undone.')
+    if (!confirmed) return
+
+    try {
+      setDeletingAccount(true)
+      await deleteCurrentAccount()
+      navigate('/')
+    } catch (deleteError) {
+      setError(deleteError.message || 'Could not delete account.')
+      setDeletingAccount(false)
+    }
+  }
+
   if (!loading && !user) {
     return (
       <>
@@ -264,6 +280,10 @@ export default function Profile() {
             <button type="button" className="profile-redesign-logout" onClick={handleSignOut}>
               <i className="bi bi-box-arrow-right"></i>
               Sign out
+            </button>
+            <button type="button" className="profile-redesign-delete-account" onClick={handleDeleteAccount} disabled={deletingAccount}>
+              <i className="bi bi-person-x"></i>
+              {deletingAccount ? 'Deleting...' : 'Delete account'}
             </button>
           </aside>
 

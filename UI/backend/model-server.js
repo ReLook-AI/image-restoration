@@ -6,6 +6,8 @@ import { handlePaymentWebhook } from './payments/webhook-handler.js'
 
 const PORT = Number(process.env.PORT || 8000)
 const MODEL_ENDPOINT = process.env.MODEL_ENDPOINT || ''
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || ''
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 const MAX_IMAGE_UPLOAD_SIZE = 10 * 1024 * 1024
 const GEMINI_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image'
 const GEMINI_GENERATE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent`
@@ -22,11 +24,85 @@ class HttpError extends Error {
 function sendJson(res, status, data) {
   res.writeHead(status, {
     'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || '*',
-    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type,Authorization',
     'Content-Type': 'application/json',
   })
   res.end(JSON.stringify(data))
+}
+
+async function readCurrentSupabaseUser(req) {
+  const authorization = req.headers.authorization || ''
+  const token = authorization.startsWith('Bearer ') ? authorization.slice(7) : ''
+
+  if (!token) {
+    throw new HttpError(401, 'Missing authorization token')
+  }
+
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    throw new HttpError(500, 'Supabase admin environment is not configured')
+  }
+
+  const response = await fetch(`${SUPABASE_URL.replace(/\/$/, '')}/auth/v1/user`, {
+    headers: {
+      apikey: SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  const data = await response.json().catch(() => null)
+
+  if (!response.ok || !data?.id) {
+    throw new HttpError(401, data?.msg || data?.message || 'Invalid authorization token')
+  }
+
+  return data
+}
+
+async function deleteSupabaseRows(tableName, query) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return
+
+  const response = await fetch(`${SUPABASE_URL.replace(/\/$/, '')}/rest/v1/${tableName}?${query}`, {
+    method: 'DELETE',
+    headers: {
+      apikey: SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      Prefer: 'return=minimal',
+    },
+  })
+
+  if (!response.ok && response.status !== 404) {
+    const message = await response.text().catch(() => '')
+    const normalized = message.toLowerCase()
+    if (!normalized.includes('could not find the table') && !normalized.includes('schema cache')) {
+      throw new HttpError(response.status, `Could not delete ${tableName}`, message)
+    }
+  }
+}
+
+async function handleDeleteAccount(req, res) {
+  const user = await readCurrentSupabaseUser(req)
+  const encodedUserId = encodeURIComponent(user.id)
+
+  await deleteSupabaseRows('images', `user_id=eq.${encodedUserId}`)
+  await deleteSupabaseRows('image_history', `user_id=eq.${encodedUserId}`)
+  await deleteSupabaseRows('restored_images', `user_id=eq.${encodedUserId}`)
+  await deleteSupabaseRows('profiles', `id=eq.${encodedUserId}`)
+
+  const response = await fetch(`${SUPABASE_URL.replace(/\/$/, '')}/auth/v1/admin/users/${encodedUserId}`, {
+    method: 'DELETE',
+    headers: {
+      apikey: SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+  })
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null)
+    throw new HttpError(response.status, data?.msg || data?.message || 'Could not delete auth user')
+  }
+
+  return sendJson(res, 200, { ok: true })
 }
 
 async function readJson(req) {
@@ -452,6 +528,10 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'POST' && url.pathname === '/api/payments/webhook') {
       return await handlePaymentWebhookRequest(req, res)
+    }
+
+    if (req.method === 'DELETE' && url.pathname === '/api/account') {
+      return await handleDeleteAccount(req, res)
     }
 
     return sendJson(res, 404, { message: 'Not found' })
