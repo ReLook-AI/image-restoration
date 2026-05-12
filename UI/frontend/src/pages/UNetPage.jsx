@@ -25,6 +25,8 @@ import { callImageEnhanceAPI, callModelAPI } from '../features/unet/modelApi'
 import { supabase } from '../services/supabaseClient'
 
 const FREE_DAILY_LIMIT = 5
+const HISTORY_TABLE_CANDIDATES = ['restored_images', 'image_history', 'images']
+const STORAGE_BUCKET_CANDIDATES = ['restored-images', 'image-history', 'images']
 const GEMINI_STYLE_PRESETS = [
   { label: 'Cinematic', prompt: 'Transform this image into a cinematic portrait with dramatic lighting, rich contrast, and natural skin tones.' },
   { label: 'Anime', prompt: 'Transform this image into a polished anime illustration with clean line art, soft shading, and expressive colors.' },
@@ -104,6 +106,96 @@ async function normalizeImageFile(file) {
   return canvas.toDataURL('image/png')
 }
 
+function dataURLToBlob(imageDataURL) {
+  const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/.exec(imageDataURL || '')
+
+  if (!match) {
+    throw new Error('Invalid image data.')
+  }
+
+  const [, mimeType, encoded] = match
+  const byteString = atob(encoded)
+  const bytes = new Uint8Array(byteString.length)
+
+  for (let i = 0; i < byteString.length; i += 1) {
+    bytes[i] = byteString.charCodeAt(i)
+  }
+
+  return new Blob([bytes], { type: mimeType })
+}
+
+async function uploadHistoryImage(imageDataURL, userId, label) {
+  const blob = dataURLToBlob(imageDataURL)
+  const extension = blob.type === 'image/jpeg' ? 'jpg' : blob.type.split('/')[1] || 'png'
+  const filePath = `${userId}/${Date.now()}-${label}-${crypto.randomUUID()}.${extension}`
+  let lastError = null
+
+  for (const bucketName of STORAGE_BUCKET_CANDIDATES) {
+    const { error } = await supabase.storage
+      .from(bucketName)
+      .upload(filePath, blob, {
+        contentType: blob.type,
+        upsert: false,
+      })
+
+    if (!error) {
+      const { data } = supabase.storage.from(bucketName).getPublicUrl(filePath)
+      return data.publicUrl
+    }
+
+    lastError = error
+  }
+
+  console.warn('Could not upload history image to Supabase Storage. Falling back to inline image data.', lastError)
+  return imageDataURL
+}
+
+async function insertHistoryRecord(userId, { originalUrl, restoredUrl, status }) {
+  let lastError = null
+
+  for (const tableName of HISTORY_TABLE_CANDIDATES) {
+    const fullPayload = {
+      user_id: userId,
+      original_image_url: originalUrl,
+      restored_image_url: restoredUrl,
+      status,
+      created_at: new Date().toISOString(),
+    }
+    const simplePayload = {
+      user_id: userId,
+      image_url: restoredUrl,
+      created_at: new Date().toISOString(),
+    }
+    const payloads = tableName === 'images'
+      ? [simplePayload]
+      : [fullPayload, simplePayload]
+
+    for (const payload of payloads) {
+      const { error } = await supabase
+        .from(tableName)
+        .insert(payload)
+
+      if (!error) return tableName
+      lastError = error
+    }
+  }
+
+  throw lastError || new Error('Could not save restored image history.')
+}
+
+async function saveRestoredImageHistory({ userId, originalImageDataURL, restoredImageDataURL, status }) {
+  const [originalUrl, restoredUrl] = await Promise.all([
+    uploadHistoryImage(originalImageDataURL, userId, 'original'),
+    uploadHistoryImage(restoredImageDataURL, userId, 'restored'),
+  ])
+
+  return insertHistoryRecord(userId, {
+    originalUrl,
+    restoredUrl,
+    status,
+  })
+}
+
 async function createFreeHdImage(imageDataURL) {
   const image = await loadCanvasImage(imageDataURL)
   const maxSide = Math.max(image.naturalWidth, image.naturalHeight)
@@ -180,6 +272,7 @@ export default function UNetPage() {
   const [procStep, setProcStep] = useState({ pct: 0, label: '', sub: '' })
   const [result, setResult] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
+  const [historyMessage, setHistoryMessage] = useState('')
   const [history, setHistory] = useState([])   // thumbnail strip
   const [isDone, setIsDone] = useState(false)
   const [checkingPlan, setCheckingPlan] = useState(true)
@@ -306,6 +399,7 @@ export default function UNetPage() {
 
     setProcessing(true); setResult(null); setIsDone(false)
     setErrorMessage('')
+    setHistoryMessage('')
 
     // Animate progress steps while inference runs in parallel
     let stepIdx = 0
@@ -339,6 +433,19 @@ export default function UNetPage() {
       setResult(newResult)
       setHistory(prev => [output.maskDataURL, ...prev].slice(0, 8))
       setIsDone(true)
+
+      try {
+        const savedTable = await saveRestoredImageHistory({
+          userId,
+          originalImageDataURL: imgSrc,
+          restoredImageDataURL: output.maskDataURL,
+          status: job === 'gemini' ? `completed-${enhanceMode}` : 'completed',
+        })
+        setHistoryMessage(`Saved to profile history (${savedTable}).`)
+      } catch (historyError) {
+        console.error('Could not save image history:', historyError)
+        setHistoryMessage(historyError.message || 'Image created, but history was not saved.')
+      }
 
       if (job === 'model' && isFreePlan && userId) {
         const nextUsageCount = freeUsageCount + 1
@@ -385,6 +492,18 @@ export default function UNetPage() {
       setAdjustments({ brightness: 104, contrast: 112, saturation: 108, warmth: 0, clarity: 22 })
       setHistory(prev => [enhanced.maskDataURL, ...prev].slice(0, 8))
       setIsDone(true)
+      try {
+        const savedTable = await saveRestoredImageHistory({
+          userId,
+          originalImageDataURL: result.maskDataURL,
+          restoredImageDataURL: enhanced.maskDataURL,
+          status: 'completed-hd-browser',
+        })
+        setHistoryMessage(`Saved to profile history (${savedTable}).`)
+      } catch (historyError) {
+        console.error('Could not save HD history:', historyError)
+        setHistoryMessage(historyError.message || 'HD image created, but history was not saved.')
+      }
     } catch (err) {
       console.error('HD enhancement failed:', err)
       setErrorMessage(err.message || 'HD enhancement failed. Please try another image.')
@@ -427,7 +546,7 @@ export default function UNetPage() {
 
   // ── Reset everything back to blank ──
   const resetAll = () => {
-    setImgSrc(null); setResult(null); setErrorMessage(''); setIsDone(false); setImgInfo('')
+    setImgSrc(null); setResult(null); setErrorMessage(''); setHistoryMessage(''); setIsDone(false); setImgInfo('')
     setActiveStylePreset('Natural'); setAdjustments(FREE_STYLE_PRESETS[0].settings)
   }
 
@@ -645,6 +764,13 @@ export default function UNetPage() {
                 </button>
               </div>
             </section>
+
+            {historyMessage && (
+              <div className={`alert border-0 shadow-sm mb-3 ${historyMessage.startsWith('Saved') ? 'alert-success' : 'alert-warning'}`}>
+                <i className={`bi me-2 ${historyMessage.startsWith('Saved') ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}`}></i>
+                {historyMessage}
+              </div>
+            )}
 
             {/* ── Input / Output Canvas Panels ── */}
             <div className="row g-3">
