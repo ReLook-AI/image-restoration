@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import { Footer } from '../components/HomeComponents'
 import { supabase } from '../services/supabaseClient'
@@ -57,6 +57,11 @@ function normalizeHistoryItem(row) {
   }
 }
 
+function getInitialTab(search) {
+  const requestedTab = new URLSearchParams(search).get('tab')
+  return ['information', 'history', 'upgrade'].includes(requestedTab) ? requestedTab : 'information'
+}
+
 function ProfileSkeleton() {
   return (
     <div className="profile-redesign-grid">
@@ -73,11 +78,12 @@ function ProfileSkeleton() {
 
 export default function Profile() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [history, setHistory] = useState([])
   const [historyTable, setHistoryTable] = useState('')
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState(() => getInitialTab(location.search))
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -88,6 +94,10 @@ export default function Profile() {
   const avatarUrl = useMemo(() => getAvatarUrl(user, profile), [user, profile])
   const accountDate = formatDate(profile?.created_at || user?.created_at)
   const latestHistory = history.slice(0, 3)
+
+  useEffect(() => {
+    setActiveTab(getInitialTab(location.search))
+  }, [location.search])
 
   useEffect(() => {
     let mounted = true
@@ -225,7 +235,7 @@ export default function Profile() {
 
               <div className="profile-redesign-name">
                 <h1>{displayName}</h1>
-                <span>PHÁM NHÂN SƠ KỲ</span>
+                <span>Image restorer</span>
                 <div className="profile-redesign-points">
                   <strong><i className="bi bi-fire"></i> {history.length * 20}</strong>
                   <strong><i className="bi bi-gem"></i> {Math.max(1050, history.length * 350)}</strong>
@@ -234,56 +244,46 @@ export default function Profile() {
             </div>
 
             <nav className="profile-redesign-menu" aria-label="Profile sections">
-              <button type="button" className="featured" onClick={() => setActiveTab('overview')}>
-                <i className="bi bi-crown-fill"></i>
-                <span>Đặc Quyền VIP</span>
-                <i className="bi bi-chevron-right"></i>
-              </button>
-              <button type="button" onClick={() => setActiveTab('overview')}>
+              <button type="button" className={activeTab === 'information' ? 'active' : ''} onClick={() => setActiveTab('information')}>
                 <i className="bi bi-info-circle-fill"></i>
-                <span>Thông Tin</span>
+                <span>Information</span>
                 <i className="bi bi-chevron-right"></i>
               </button>
-              <button type="button" onClick={() => setActiveTab('history')}>
-                <i className="bi bi-controller"></i>
-                <span>Hoạt Động</span>
-                <i className="bi bi-chevron-right"></i>
-              </button>
-              <button type="button" onClick={() => setActiveTab('achievements')}>
-                <i className="bi bi-trophy-fill"></i>
-                <span>Bảng Xếp Hạng</span>
-                <i className="bi bi-chevron-right"></i>
-              </button>
-              <button type="button" onClick={() => setActiveTab('history')}>
+              <button type="button" className={activeTab === 'history' ? 'active' : ''} onClick={() => setActiveTab('history')}>
                 <i className="bi bi-clock-history"></i>
-                <span>Lịch Sử Xem</span>
+                <span>History</span>
+                <i className="bi bi-chevron-right"></i>
+              </button>
+              <button type="button" className={`featured ${activeTab === 'upgrade' ? 'active' : ''}`} onClick={() => setActiveTab('upgrade')}>
+                <i className="bi bi-gem"></i>
+                <span>Upgrade</span>
                 <i className="bi bi-chevron-right"></i>
               </button>
             </nav>
 
             <button type="button" className="profile-redesign-logout" onClick={handleSignOut}>
               <i className="bi bi-box-arrow-right"></i>
-              Đăng Xuất
+              Sign out
             </button>
           </aside>
 
           <section className="profile-redesign-content">
             <div className="profile-redesign-tabs" role="tablist" aria-label="Profile tabs">
-              <button type="button" className={activeTab === 'overview' ? 'active' : ''} onClick={() => setActiveTab('overview')}>
-                Tổng Quan
+              <button type="button" className={activeTab === 'information' ? 'active' : ''} onClick={() => setActiveTab('information')}>
+                Information
               </button>
               <button type="button" className={activeTab === 'history' ? 'active' : ''} onClick={() => setActiveTab('history')}>
-                Ảnh Đã Phục Hồi
+                History
               </button>
-              <button type="button" className={activeTab === 'achievements' ? 'active' : ''} onClick={() => setActiveTab('achievements')}>
-                Thành Tựu
+              <button type="button" className={activeTab === 'upgrade' ? 'active' : ''} onClick={() => setActiveTab('upgrade')}>
+                Upgrade
               </button>
             </div>
 
             {notice && <div className="profile-alert success">{notice}</div>}
             {error && <div className="profile-alert error">{error}</div>}
 
-            {activeTab === 'overview' && (
+            {activeTab === 'information' && (
               <div className="profile-redesign-panel">
                 <div className="profile-redesign-stats">
                   <article>
@@ -301,8 +301,8 @@ export default function Profile() {
                 </div>
 
                 <div className="profile-redesign-section-title">
-                  <h2>Hoạt động gần đây</h2>
-                  <button type="button" onClick={() => setActiveTab('history')}>Xem tất cả</button>
+                  <h2>Recent activity</h2>
+                  <button type="button" onClick={() => setActiveTab('history')}>View all</button>
                 </div>
 
                 {loading ? (
@@ -320,7 +320,7 @@ export default function Profile() {
                 <div className="profile-redesign-section-title">
                   <div>
                     <h2>Restored Image History</h2>
-                    <p>Ảnh đã phục hồi của tài khoản hiện tại.</p>
+                    <p>Restored images that belong to your current account.</p>
                   </div>
                   {historyTable && <span className="profile-table-badge">{historyTable}</span>}
                 </div>
@@ -335,23 +335,24 @@ export default function Profile() {
               </div>
             )}
 
-            {activeTab === 'achievements' && (
+            {activeTab === 'upgrade' && (
               <div className="profile-redesign-panel">
                 <div className="profile-redesign-achievements">
                   <article>
-                    <i className="bi bi-stars"></i>
-                    <h3>Tân binh phục hồi ảnh</h3>
-                    <p>Hoàn thành lần phục hồi ảnh đầu tiên.</p>
+                    <i className="bi bi-gem"></i>
+                    <h3>Upgrade to Pro</h3>
+                    <p>Unlock more restorations, faster processing, and premium enhancement features.</p>
+                    <Link to="/payment" className="btn btn-primary">Upgrade now</Link>
                   </article>
                   <article>
                     <i className="bi bi-lightning-charge-fill"></i>
-                    <h3>Tốc độ ánh sáng</h3>
-                    <p>Lưu lại các phiên xử lý gần nhất trong lịch sử.</p>
+                    <h3>Priority workflow</h3>
+                    <p>Keep your restoration workflow smooth when you need more daily capacity.</p>
                   </article>
                   <article>
-                    <i className="bi bi-gem"></i>
-                    <h3>Nhà sưu tầm</h3>
-                    <p>Càng nhiều ảnh phục hồi, điểm hồ sơ càng tăng.</p>
+                    <i className="bi bi-stars"></i>
+                    <h3>Premium tools</h3>
+                    <p>Access advanced AI image enhancement options as they become available.</p>
                   </article>
                 </div>
               </div>

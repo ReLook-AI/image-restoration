@@ -17,6 +17,7 @@ export default function Navbar() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [theme, setTheme] = useState(getInitialTheme)
   const active = (path) => pathname === path ? 'active' : ''
 
@@ -46,6 +47,10 @@ export default function Navbar() {
     user?.user_metadata?.first_name ||
     user?.user_metadata?.full_name ||
     user?.email?.split('@')[0]
+  const avatarUrl =
+    user?.user_metadata?.avatar_url ||
+    user?.user_metadata?.picture ||
+    ''
   const isSignedIn = Boolean(user)
 
   const handleNav = (e, targetPath, hashId) => {
@@ -64,6 +69,7 @@ export default function Navbar() {
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     setMenuOpen(false)
+    setProfileMenuOpen(false)
     navigate('/')
   }
 
@@ -117,11 +123,51 @@ export default function Navbar() {
         </button>
 
         {isSignedIn ? (
-          <>
-            <Link to="/profile" className="nav-welcome" title="View profile">Welcome, {displayName}</Link>
-            <Link to="/payment" className="btn btn-primary">Upgrade to Pro</Link>
-            <button type="button" className="btn btn-outline" onClick={handleSignOut}>Sign Out</button>
-          </>
+          <div className="nav-profile-menu">
+            <button
+              type="button"
+              className="nav-avatar-btn"
+              onClick={() => setProfileMenuOpen(open => !open)}
+              aria-label="Open profile menu"
+              aria-expanded={profileMenuOpen}
+            >
+              {avatarUrl ? <img src={avatarUrl} alt={displayName || 'User avatar'} /> : <span>{(displayName || 'U').slice(0, 1).toUpperCase()}</span>}
+            </button>
+
+            {profileMenuOpen && (
+              <div className="nav-profile-panel">
+                <div className="nav-profile-panel-head">
+                  <div className="nav-profile-panel-avatar">
+                    {avatarUrl ? <img src={avatarUrl} alt={displayName || 'User avatar'} /> : <span>{(displayName || 'U').slice(0, 1).toUpperCase()}</span>}
+                  </div>
+                  <div>
+                    <strong>{displayName}</strong>
+                    <small>{user.email}</small>
+                  </div>
+                </div>
+
+                <Link to="/profile" onClick={() => setProfileMenuOpen(false)}>
+                  <i className="bi bi-info-circle-fill"></i>
+                  Information
+                  <i className="bi bi-chevron-right"></i>
+                </Link>
+                <Link to="/profile?tab=history" onClick={() => setProfileMenuOpen(false)}>
+                  <i className="bi bi-clock-history"></i>
+                  History
+                  <i className="bi bi-chevron-right"></i>
+                </Link>
+                <Link to="/payment" onClick={() => setProfileMenuOpen(false)}>
+                  <i className="bi bi-gem"></i>
+                  Upgrade
+                  <i className="bi bi-chevron-right"></i>
+                </Link>
+                <button type="button" onClick={handleSignOut}>
+                  <i className="bi bi-box-arrow-right"></i>
+                  Sign out
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
           <>
             <Link to="/login" className="btn btn-outline">Sign In</Link>
