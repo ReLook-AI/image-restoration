@@ -255,14 +255,6 @@ a.nav-welcome:hover {
   background: color-mix(in srgb, #e11d48 10%, var(--white));
   color: #be123c;
 }
-.nav-profile-panel button.danger-link {
-  margin-top: 10px;
-  color: #be123c;
-  background: color-mix(in srgb, #e11d48 8%, var(--white));
-}
-.nav-profile-panel button.danger-link + button {
-  margin-top: 8px;
-}
 .theme-toggle {
   min-width: 96px;
   height: 42px;
@@ -817,21 +809,6 @@ a.nav-welcome:hover {
   letter-spacing: .04em;
   text-transform: uppercase;
 }
-.profile-redesign-points {
-  display: flex;
-  gap: 16px;
-  margin-top: 10px;
-}
-.profile-redesign-points strong {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--muted);
-  font-size: .95rem;
-}
-.profile-redesign-points i {
-  color: var(--accent);
-}
 .profile-redesign-menu {
   position: relative;
   z-index: 1;
@@ -909,9 +886,9 @@ a.nav-welcome:hover {
   transition: transform .2s ease, background .2s ease;
 }
 .profile-redesign-delete-account {
-  width: 100%;
+  width: fit-content;
   min-height: 56px;
-  margin-top: 12px;
+  margin-top: 0;
   border: 1px solid color-mix(in srgb, #e11d48 38%, var(--border));
   border-radius: 14px;
   background: color-mix(in srgb, #e11d48 8%, var(--white));
@@ -932,6 +909,34 @@ a.nav-welcome:hover {
 .profile-redesign-delete-account:disabled {
   cursor: not-allowed;
   opacity: .7;
+}
+.profile-account-settings {
+  margin-top: 28px;
+  border: 1px solid color-mix(in srgb, #e11d48 24%, var(--border));
+  border-radius: 18px;
+  background: color-mix(in srgb, #e11d48 5%, var(--panel-soft));
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.profile-account-settings span {
+  display: block;
+  color: #be123c;
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.profile-account-settings h3 {
+  color: var(--text);
+  margin-top: 4px;
+  font-size: 1rem;
+}
+.profile-account-settings p {
+  color: var(--muted);
+  margin-top: 4px;
 }
 .profile-redesign-logout:hover {
   transform: translateY(-2px);
@@ -1111,10 +1116,22 @@ a.nav-welcome:hover {
   color: #ffb0bf;
   background: rgba(94,19,51,.45);
 }
-:root[data-theme="dark"] .nav-profile-panel button.danger-link,
 :root[data-theme="dark"] .profile-redesign-delete-account {
   color: #ffb0bf;
   background: rgba(94,19,51,.34);
+}
+:root:not([data-theme="dark"]) .profile-redesign-tabs button,
+:root:not([data-theme="dark"]) .profile-redesign-section-title p,
+:root:not([data-theme="dark"]) .profile-redesign-achievements p,
+:root:not([data-theme="dark"]) .profile-redesign-stats span,
+:root:not([data-theme="dark"]) .nav-profile-panel-head small {
+  color: #4b5568;
+}
+:root:not([data-theme="dark"]) .profile-redesign-tabs button.active,
+:root:not([data-theme="dark"]) .profile-redesign-section-title button,
+:root:not([data-theme="dark"]) .profile-redesign-menu i:first-child,
+:root:not([data-theme="dark"]) .nav-profile-panel a i:first-child {
+  color: #31447c;
 }
 @media (max-width: 1120px) {
   .profile-redesign-shell {
@@ -1140,9 +1157,6 @@ a.nav-welcome:hover {
   .profile-redesign-user {
     flex-direction: column;
     text-align: center;
-  }
-  .profile-redesign-points {
-    justify-content: center;
   }
   .profile-redesign-menu button.featured {
     margin-inline: 0;
@@ -1171,6 +1185,13 @@ a.nav-welcome:hover {
   .profile-redesign-section-title {
     align-items: flex-start;
     flex-direction: column;
+  }
+  .profile-account-settings {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .profile-redesign-delete-account {
+    width: 100%;
   }
 }
 :root[data-theme="dark"] .home-hero,

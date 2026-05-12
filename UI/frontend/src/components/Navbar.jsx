@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LogoIcon } from './Icons'
 import { supabase } from '../services/supabaseClient'
-import { deleteCurrentAccount } from '../services/accountApi'
 
 const THEME_STORAGE_KEY = 'relook-theme'
 
@@ -72,20 +71,6 @@ export default function Navbar() {
     setMenuOpen(false)
     setProfileMenuOpen(false)
     navigate('/')
-  }
-
-  const handleDeleteAccount = async () => {
-    const confirmed = window.confirm('Delete your account permanently? This cannot be undone.')
-    if (!confirmed) return
-
-    try {
-      await deleteCurrentAccount()
-      setMenuOpen(false)
-      setProfileMenuOpen(false)
-      navigate('/')
-    } catch (error) {
-      window.alert(error.message || 'Could not delete account.')
-    }
   }
 
   const toggleTheme = () => {
@@ -172,14 +157,10 @@ export default function Navbar() {
                   <i className="bi bi-chevron-right"></i>
                 </Link>
                 <Link to="/payment" onClick={() => setProfileMenuOpen(false)}>
-                  <i className="bi bi-gem"></i>
+                  <i className="bi bi-rocket-takeoff-fill"></i>
                   Upgrade
                   <i className="bi bi-chevron-right"></i>
                 </Link>
-                <button type="button" className="danger-link" onClick={handleDeleteAccount}>
-                  <i className="bi bi-person-x"></i>
-                  Delete account
-                </button>
                 <button type="button" onClick={handleSignOut}>
                   <i className="bi bi-box-arrow-right"></i>
                   Sign out

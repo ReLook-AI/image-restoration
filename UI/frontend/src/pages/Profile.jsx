@@ -252,10 +252,6 @@ export default function Profile() {
               <div className="profile-redesign-name">
                 <h1>{displayName}</h1>
                 <span>Image restorer</span>
-                <div className="profile-redesign-points">
-                  <strong><i className="bi bi-fire"></i> {history.length * 20}</strong>
-                  <strong><i className="bi bi-gem"></i> {Math.max(1050, history.length * 350)}</strong>
-                </div>
               </div>
             </div>
 
@@ -271,7 +267,7 @@ export default function Profile() {
                 <i className="bi bi-chevron-right"></i>
               </button>
               <button type="button" className={`featured ${activeTab === 'upgrade' ? 'active' : ''}`} onClick={() => setActiveTab('upgrade')}>
-                <i className="bi bi-gem"></i>
+                <i className="bi bi-rocket-takeoff-fill"></i>
                 <span>Upgrade</span>
                 <i className="bi bi-chevron-right"></i>
               </button>
@@ -280,10 +276,6 @@ export default function Profile() {
             <button type="button" className="profile-redesign-logout" onClick={handleSignOut}>
               <i className="bi bi-box-arrow-right"></i>
               Sign out
-            </button>
-            <button type="button" className="profile-redesign-delete-account" onClick={handleDeleteAccount} disabled={deletingAccount}>
-              <i className="bi bi-person-x"></i>
-              {deletingAccount ? 'Deleting...' : 'Delete account'}
             </button>
           </aside>
 
@@ -332,6 +324,18 @@ export default function Profile() {
                 ) : (
                   <EmptyHistory />
                 )}
+
+                <div className="profile-account-settings">
+                  <div>
+                    <span>Account settings</span>
+                    <h3>Delete account</h3>
+                    <p>Permanently remove your profile and restored image history.</p>
+                  </div>
+                  <button type="button" className="profile-redesign-delete-account" onClick={handleDeleteAccount} disabled={deletingAccount}>
+                    <i className="bi bi-person-x"></i>
+                    {deletingAccount ? 'Deleting...' : 'Delete account'}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -359,7 +363,7 @@ export default function Profile() {
               <div className="profile-redesign-panel">
                 <div className="profile-redesign-achievements">
                   <article>
-                    <i className="bi bi-gem"></i>
+                    <i className="bi bi-rocket-takeoff-fill"></i>
                     <h3>Upgrade to Pro</h3>
                     <p>Unlock more restorations, faster processing, and premium enhancement features.</p>
                     <Link to="/payment" className="btn btn-primary">Upgrade now</Link>
