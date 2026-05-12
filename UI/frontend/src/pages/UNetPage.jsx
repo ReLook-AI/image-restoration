@@ -456,7 +456,7 @@ export default function UNetPage() {
           {/* ════════════════════════════════════════
               SIDEBAR – Model, Parameters, Options
               ════════════════════════════════════════ */}
-          <aside className="col-lg-3 col-xl-2 bg-white border-end py-4 px-3 d-flex flex-column gap-4 unet-sidebar">
+          <aside className="col-lg-3 col-xl-3 bg-white border-end py-4 px-3 d-flex flex-column gap-4 unet-sidebar">
             
             <div>
               <h6 className="text-uppercase text-muted fw-bold mb-3" style={{ fontSize: '0.75rem', letterSpacing: '1px' }}>
@@ -464,7 +464,7 @@ export default function UNetPage() {
               </h6>
 
               {/* Premium Active Model Info Card */}
-              <div className="card text-white border-0 shadow-lg rounded-4 overflow-hidden position-relative" style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)' }}>
+              <div className="card text-white border-0 shadow-lg rounded-4 overflow-hidden position-relative active-model-card" style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)' }}>
                 <div className="position-absolute" style={{ top: '-20px', right: '-20px', width: '100px', height: '100px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }}></div>
                 <div className="position-absolute" style={{ bottom: '-30px', left: '-10px', width: '80px', height: '80px', background: 'rgba(255,255,255,0.05)', borderRadius: '50%' }}></div>
                 
@@ -475,7 +475,10 @@ export default function UNetPage() {
                     </div>
                     <div>
                       <div className="text-white-50 fw-bold text-uppercase" style={{ fontSize: '0.65rem', letterSpacing: '1px' }}>Active Model</div>
-                      <div className="fw-bold fs-6 lh-1 mt-1">{currentModel.name}</div>
+                      <div className="active-model-name">
+                        <span>{currentModel.name.replace(' (Pre-trained)', '')}</span>
+                        <small>(Pre-trained)</small>
+                      </div>
                     </div>
                   </div>
 
@@ -488,11 +491,11 @@ export default function UNetPage() {
                     </li>
                     <li className="d-flex justify-content-between mb-2">
                       <span className="text-white-50"><i className="bi bi-layers me-2"></i>Network</span>
-                      <span className="fw-medium text-end" style={{ maxWidth: '65%' }}>{currentModel.arch}</span>
+                      <span className="active-model-value">{currentModel.arch}</span>
                     </li>
                     <li className="d-flex justify-content-between">
                       <span className="text-white-50"><i className="bi bi-palette me-2"></i>Style</span>
-                      <span className="fw-medium text-end" style={{ maxWidth: '65%' }}>{currentModel.params}</span>
+                      <span className="active-model-value">{currentModel.params}</span>
                     </li>
                   </ul>
                 </div>
@@ -514,7 +517,7 @@ export default function UNetPage() {
           {/* ════════════════════════════════════════
               MAIN WORKSPACE
               ════════════════════════════════════════ */}
-          <main className="col-lg-9 col-xl-10 p-4 d-flex flex-column gap-3 unet-main">
+          <main className="col-lg-9 col-xl-9 p-4 d-flex flex-column gap-3 unet-main">
 
             {/* ── Toolbar ── */}
             <div className="bg-white border rounded-3 p-2 d-flex align-items-center gap-2 flex-wrap shadow-sm unet-toolbar">

@@ -107,12 +107,71 @@ section { padding: 80px 6%; }
 /* ── Grid ── */
 .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
 
-/* ── Footer ── */
-footer { background: var(--primary); color: rgba(255,255,255,.8); padding: 48px 6% 24px; text-align: center; font-size: .88rem; }
-footer .footer-links { display: flex; justify-content: center; gap: 28px; margin-bottom: 16px; flex-wrap: wrap; }
-footer a { color: rgba(255,255,255,.7); text-decoration: none; transition: color .2s; }
-footer a:hover { color: #fff; }
-footer .copy { margin-top: 16px; color: rgba(255,255,255,.45); font-size: .8rem; }
+/* Footer */
+.site-footer {
+  background: #0f1828;
+  color: rgba(255,255,255,.86);
+  border-top: 3px solid #18b26b;
+  padding: 36px 6% 24px;
+  font-size: .88rem;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.35fr) repeat(3, minmax(150px, 1fr));
+  gap: 56px;
+  padding-bottom: 34px;
+}
+.footer-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-decoration: none;
+  margin-bottom: 18px;
+}
+.footer-logo svg {
+  color: #20d47a;
+}
+.footer-brand p {
+  max-width: 420px;
+  margin: 0;
+  color: rgba(255,255,255,.82);
+  line-height: 1.55;
+}
+.footer-column {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+.footer-column h3 {
+  color: #fff;
+  font-size: .95rem;
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+.footer-column a,
+.footer-column span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255,255,255,.86);
+  text-decoration: none;
+  line-height: 1.35;
+  transition: color .2s;
+}
+.footer-column a:hover {
+  color: #20d47a;
+}
+.site-footer .copy {
+  border-top: 1px solid rgba(255,255,255,.08);
+  margin: 0;
+  padding-top: 22px;
+  color: rgba(255,255,255,.78);
+  font-size: .84rem;
+  text-align: center;
+}
 
 /* ── Auth shared ── */
 .auth-card { background: var(--white); border-radius: 24px; padding: 48px 44px; box-shadow: var(--shadow-lg); border: 1px solid var(--border); width: 100%; max-width: 460px; animation: fadeUp .5s ease; }
@@ -327,6 +386,41 @@ footer .copy { margin-top: 16px; color: rgba(255,255,255,.45); font-size: .8rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.active-model-card .card-body {
+  padding: 22px !important;
+}
+.active-model-name {
+  display: grid;
+  gap: 2px;
+  margin-top: 4px;
+  color: #fff;
+  font-size: clamp(1rem, 1.15vw, 1.25rem);
+  font-weight: 900;
+  line-height: 1.16;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.active-model-name small {
+  color: rgba(255,255,255,.82);
+  font-size: .78em;
+  font-weight: 800;
+}
+.active-model-card li {
+  gap: 12px;
+  align-items: flex-start;
+}
+.active-model-value {
+  flex: 1;
+  min-width: 110px;
+  max-width: 64%;
+  color: #fff;
+  font-weight: 700;
+  text-align: right;
+  line-height: 1.45;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
 .gemini-panel {
   display: grid;
   gap: 12px;
@@ -531,6 +625,10 @@ footer .copy { margin-top: 16px; color: rgba(255,255,255,.45); font-size: .8rem;
 @media(max-width:980px) {
   .payment-layout { grid-template-columns: 1fr; max-width: 720px; }
   .payment-sidebar { order: -1; }
+  .footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 30px;
+  }
   .free-style-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -597,6 +695,9 @@ footer .copy { margin-top: 16px; color: rgba(255,255,255,.45); font-size: .8rem;
     border-right: 0 !important;
     border-bottom: 1px solid var(--border);
   }
+  .active-model-value {
+    max-width: 70%;
+  }
   .unet-main {
     padding: 16px !important;
   }
@@ -644,6 +745,16 @@ footer .copy { margin-top: 16px; color: rgba(255,255,255,.45); font-size: .8rem;
 
 @media(max-width:520px) {
   .logo { font-size: 1.05rem; }
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .site-footer {
+    padding: 32px 6% 22px;
+  }
+  .footer-brand p {
+    max-width: 100%;
+  }
   .nav-cta .btn { flex: 1 1 140px; padding: 10px 14px; }
   .payment-page { padding: 20px 3%; }
   .payment-card { padding: 20px 14px; }

@@ -114,11 +114,40 @@ export function Testi({ text, name, role, initials }) {
 
 export function Footer() {
   return (
-    <footer id="contact">
-      <div className="footer-links">
-        {['Home', 'About', 'Features', 'Pricing', 'Privacy Policy', 'Contact'].map(l => <a href="/#contact" key={l}>{l}</a>)}
+    <footer id="contact" className="site-footer">
+      <div className="footer-grid">
+        <div className="footer-brand">
+          <Link to="/" className="footer-logo">
+            <LogoIcon size={24} />
+            <span>ReLook-AI</span>
+          </Link>
+          <p>AI-powered image restoration, colorization and enhancement for fast visual demos.</p>
+        </div>
+
+        <div className="footer-column">
+          <h3>Quick Links</h3>
+          <Link to="/">Home</Link>
+          <Link to="/app">Restoration</Link>
+          <Link to="/payment">Pricing</Link>
+          <Link to="/login">Sign In</Link>
+        </div>
+
+        <div className="footer-column">
+          <h3>Resources</h3>
+          <a href="/#features">Features</a>
+          <a href="/#tools">AI Tools</a>
+          <a href="/#testimonials">Reviews</a>
+          <a href="/#contact">Support</a>
+        </div>
+
+        <div className="footer-column">
+          <h3>Contact</h3>
+          <a href="mailto:info@relook.ai"><i className="bi bi-envelope"></i> info@relook.ai</a>
+          <a href="tel:+845551234567"><i className="bi bi-telephone"></i> +84 (555) 123-4567</a>
+          <span><i className="bi bi-geo-alt"></i> Ho Chi Minh, VN</span>
+        </div>
       </div>
-      <p className="copy">© 2025 ReLook-AI. All rights reserved.</p>
+      <p className="copy">&copy; 2025 ReLook-AI. All rights reserved.</p>
     </footer>
   )
 }
