@@ -124,6 +124,17 @@ function dataURLToBlob(imageDataURL) {
   return new Blob([bytes], { type: mimeType })
 }
 
+function isMissingHistoryTableError(error) {
+  const message = String(error?.message || '').toLowerCase()
+  return (
+    error?.code === 'PGRST205' ||
+    error?.code === '42P01' ||
+    message.includes('could not find the table') ||
+    message.includes('does not exist') ||
+    message.includes('schema cache')
+  )
+}
+
 async function uploadHistoryImage(imageDataURL, userId, label) {
   const blob = dataURLToBlob(imageDataURL)
   const extension = blob.type === 'image/jpeg' ? 'jpg' : blob.type.split('/')[1] || 'png'
@@ -178,6 +189,10 @@ async function insertHistoryRecord(userId, { originalUrl, restoredUrl, status })
       if (!error) return tableName
       lastError = error
     }
+  }
+
+  if (isMissingHistoryTableError(lastError)) {
+    throw new Error('History table is not configured yet. Run backend/supabase-image-history.sql in Supabase, then create an image again.')
   }
 
   throw lastError || new Error('Could not save restored image history.')
