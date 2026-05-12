@@ -3,11 +3,21 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LogoIcon } from './Icons'
 import { supabase } from '../services/supabaseClient'
 
+const THEME_STORAGE_KEY = 'relook-theme'
+
+function getInitialTheme() {
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY)
+  if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme
+
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
 export default function Navbar() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [theme, setTheme] = useState(getInitialTheme)
   const active = (path) => pathname === path ? 'active' : ''
 
   useEffect(() => {
@@ -26,6 +36,11 @@ export default function Navbar() {
       subscription.subscription.unsubscribe()
     }
   }, [])
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    localStorage.setItem(THEME_STORAGE_KEY, theme)
+  }, [theme])
 
   const displayName =
     user?.user_metadata?.first_name ||
@@ -50,6 +65,10 @@ export default function Navbar() {
     await supabase.auth.signOut()
     setMenuOpen(false)
     navigate('/')
+  }
+
+  const toggleTheme = () => {
+    setTheme(current => current === 'dark' ? 'light' : 'dark')
   }
 
   return (
@@ -86,6 +105,17 @@ export default function Navbar() {
       </div>
 
       <div className="nav-cta">
+        <button
+          type="button"
+          className="theme-toggle"
+          onClick={toggleTheme}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+        >
+          <i className={`bi ${theme === 'dark' ? 'bi-sun-fill' : 'bi-moon-stars-fill'}`}></i>
+          <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+        </button>
+
         {isSignedIn ? (
           <>
             <span className="nav-welcome">Welcome, {displayName}</span>
