@@ -4,6 +4,7 @@ import LoginPage   from './pages/LoginPage'
 import PaymentPage from './pages/PaymentPage'
 import Profile     from './pages/Profile'
 import UNetPage    from './pages/UNetPage'
+import Admin       from './pages/Admin'
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
         <Route path="/login"   element={<LoginPage/>}/>
         <Route path="/payment" element={<PaymentPage/>}/>
         <Route path="/profile" element={<Profile/>}/>
+        <Route path="/admin"   element={<Admin/>}/>
         <Route path="/app"     element={<UNetPage/>}/>
       </Routes>
     </BrowserRouter>

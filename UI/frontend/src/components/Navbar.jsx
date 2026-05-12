@@ -18,18 +18,38 @@ export default function Navbar() {
   const [user, setUser] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [theme, setTheme] = useState(getInitialTheme)
   const active = (path) => pathname === path ? 'active' : ''
 
   useEffect(() => {
     let mounted = true
 
+    async function syncUser(sessionUser) {
+      if (!mounted) return
+
+      setUser(sessionUser ?? null)
+      setIsAdmin(false)
+
+      if (!sessionUser) return
+
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', sessionUser.id)
+        .maybeSingle()
+
+      if (mounted) {
+        setIsAdmin(profileData?.role === 'admin')
+      }
+    }
+
     supabase.auth.getSession().then(({ data }) => {
-      if (mounted) setUser(data.session?.user ?? null)
+      syncUser(data.session?.user ?? null)
     })
 
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
+      syncUser(session?.user ?? null)
     })
 
     return () => {
@@ -99,6 +119,7 @@ export default function Navbar() {
       <ul className="nav-links">
         <li><Link to="/" className={active('/')}>Home</Link></li>
         <li><Link to="/app" className={active('/app')}>Restoration</Link></li>
+        {isAdmin && <li><Link to="/admin" className={active('/admin')}>Admin</Link></li>}
         <li><a href="/#features" onClick={(e) => handleNav(e, '/', 'features')}>Features</a></li>
         <li><a href="#contact" onClick={(e) => handleNav(e, pathname, 'contact')}>Contact</a></li>
       </ul>
@@ -106,6 +127,7 @@ export default function Navbar() {
       <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
         <Link to="/" className={active('/')} onClick={() => setMenuOpen(false)}>Home</Link>
         <Link to="/app" className={active('/app')} onClick={() => setMenuOpen(false)}>Restoration</Link>
+        {isAdmin && <Link to="/admin" className={active('/admin')} onClick={() => setMenuOpen(false)}>Admin</Link>}
         <a href="/#features" onClick={(e) => handleNav(e, '/', 'features')}>Features</a>
         <a href="#contact" onClick={(e) => handleNav(e, pathname, 'contact')}>Contact</a>
       </div>
@@ -161,6 +183,13 @@ export default function Navbar() {
                   Upgrade
                   <i className="bi bi-chevron-right"></i>
                 </Link>
+                {isAdmin && (
+                  <Link to="/admin" onClick={() => setProfileMenuOpen(false)}>
+                    <i className="bi bi-shield-lock-fill"></i>
+                    Admin
+                    <i className="bi bi-chevron-right"></i>
+                  </Link>
+                )}
                 <button type="button" onClick={handleSignOut}>
                   <i className="bi bi-box-arrow-right"></i>
                   Sign out

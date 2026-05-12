@@ -38,6 +38,16 @@ VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 
 Run [backend/supabase-profiles.sql](backend/supabase-profiles.sql) in the Supabase SQL Editor to create `public.profiles` and automatically copy new Auth users into that profile table. Supabase Auth stores email/password users in `auth.users`; `public.profiles` stores app-level fields like first name and last name.
 
+Run [backend/supabase-image-history.sql](backend/supabase-image-history.sql) to create restored image history and storage policies. To enable the admin dashboard, run [backend/supabase-admin.sql](backend/supabase-admin.sql), then promote one account:
+
+```sql
+update public.profiles
+set role = 'admin'
+where email = 'your-admin-email@example.com';
+```
+
+After that account signs in, the `/admin` route becomes available.
+
 For Google login, enable Google in Supabase Authentication > Providers and add your local callback URL in Supabase Authentication > URL Configuration:
 
 ```text
