@@ -118,7 +118,7 @@ export default function Navbar() {
 
         {isSignedIn ? (
           <>
-            <span className="nav-welcome">Welcome, {displayName}</span>
+            <Link to="/profile" className="nav-welcome" title="View profile">Welcome, {displayName}</Link>
             <Link to="/payment" className="btn btn-primary">Upgrade to Pro</Link>
             <button type="button" className="btn btn-outline" onClick={handleSignOut}>Sign Out</button>
           </>

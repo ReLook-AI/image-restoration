@@ -115,6 +115,14 @@ body { font-family: 'Montserrat', sans-serif; color: var(--text); background: va
 .nav-links a:hover, .nav-links a.active { color: var(--accent); }
 .nav-cta { display: flex; align-items: center; gap: 12px; }
 .nav-welcome { color: var(--primary); font-weight: 700; font-size: .9rem; white-space: nowrap; }
+a.nav-welcome {
+  text-decoration: none;
+  transition: color .2s ease, transform .2s ease;
+}
+a.nav-welcome:hover {
+  color: var(--accent);
+  transform: translateY(-1px);
+}
 .theme-toggle {
   min-width: 96px;
   height: 42px;
