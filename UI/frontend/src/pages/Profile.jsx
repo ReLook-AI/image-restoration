@@ -346,7 +346,6 @@ export default function Profile() {
                     <h2>Restored Image History</h2>
                     <p>Restored images that belong to your current account.</p>
                   </div>
-                  {historyTable && <span className="profile-table-badge">{historyTable}</span>}
                 </div>
 
                 {loading ? (

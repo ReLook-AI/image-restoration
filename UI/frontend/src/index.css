@@ -459,15 +459,6 @@ a.nav-welcome:hover {
   color: #fff;
   font-size: clamp(1.35rem, 3vw, 2rem);
 }
-.profile-table-badge {
-  border: 1px solid rgba(143,178,255,.3);
-  border-radius: 999px;
-  padding: 8px 12px;
-  color: #c8d7ff;
-  background: rgba(143,178,255,.1);
-  font-size: .78rem;
-  font-weight: 800;
-}
 .profile-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -526,10 +517,11 @@ a.nav-welcome:hover {
   justify-content: space-between;
   gap: 14px;
   padding: 14px;
+  background: var(--panel-soft);
 }
 .profile-card-body p {
   margin-top: 7px;
-  color: #9aa8c1;
+  color: var(--muted);
   font-size: .82rem;
   font-weight: 600;
 }
@@ -538,8 +530,8 @@ a.nav-welcome:hover {
   max-width: 170px;
   border-radius: 999px;
   padding: 6px 10px;
-  background: rgba(143,178,255,.13);
-  color: #c8d7ff;
+  background: color-mix(in srgb, var(--accent) 12%, var(--white));
+  color: var(--primary);
   font-size: .72rem;
   font-weight: 900;
   text-transform: capitalize;
@@ -557,22 +549,22 @@ a.nav-welcome:hover {
 .profile-delete-btn {
   width: 42px;
   height: 42px;
-  border: 1px solid rgba(255,255,255,.1);
+  border: 1px solid color-mix(in srgb, #e11d48 22%, var(--border));
   border-radius: 13px;
-  color: #fecaca;
-  background: rgba(248,113,113,.08);
+  color: #be123c;
+  background: color-mix(in srgb, #e11d48 7%, var(--white));
   cursor: pointer;
   transition: transform .2s ease, background .2s ease;
 }
 .profile-delete-btn:hover {
   transform: translateY(-2px);
-  background: rgba(248,113,113,.18);
+  background: color-mix(in srgb, #e11d48 12%, var(--white));
 }
 .profile-empty,
 .profile-alert {
-  border: 1px solid rgba(255,255,255,.1);
+  border: 1px solid var(--border);
   border-radius: 20px;
-  background: rgba(20,29,47,.72);
+  background: var(--panel-soft);
 }
 .profile-empty {
   min-height: 310px;
@@ -585,16 +577,16 @@ a.nav-welcome:hover {
   text-align: center;
 }
 .profile-empty i {
-  color: #8eafff;
+  color: var(--accent);
   font-size: 2.8rem;
 }
 .profile-empty h1,
 .profile-empty h3 {
-  color: #fff;
+  color: var(--text);
 }
 .profile-empty p {
   max-width: 440px;
-  color: #a9b7d0;
+  color: var(--muted);
 }
 .auth-required {
   max-width: 620px;
@@ -617,14 +609,14 @@ a.nav-welcome:hover {
   position: relative;
   overflow: hidden;
   border-radius: 14px;
-  background: rgba(255,255,255,.08);
+  background: color-mix(in srgb, var(--accent) 8%, var(--panel-soft));
 }
 .profile-skeleton::after {
   content: '';
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 12%, transparent), transparent);
   animation: profile-shimmer 1.4s infinite;
 }
 .skeleton-card {
@@ -723,8 +715,8 @@ a.nav-welcome:hover {
 .profile-redesign-page {
   padding: 26px 4% 72px;
   background:
-    radial-gradient(circle at 22% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 32rem),
-    radial-gradient(circle at 82% 6%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 24rem),
+    radial-gradient(circle at 22% 0%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 32rem),
+    radial-gradient(circle at 82% 6%, color-mix(in srgb, var(--primary) 6%, transparent), transparent 24rem),
     var(--bg);
   color: var(--text);
 }
@@ -755,8 +747,8 @@ a.nav-welcome:hover {
   inset: 0 0 auto;
   height: 118px;
   background:
-    linear-gradient(90deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent),
-    radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 12rem);
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent),
+    radial-gradient(circle at 80% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 12rem);
   border-bottom: 1px solid var(--border);
   pointer-events: none;
 }
@@ -954,7 +946,7 @@ a.nav-welcome:hover {
   align-items: end;
   gap: 48px;
   padding: 0 42px;
-  background: var(--panel-soft);
+  background: color-mix(in srgb, var(--panel-soft) 86%, var(--panel-surface));
   border-bottom: 1px solid var(--border);
 }
 .profile-redesign-tabs button {
@@ -962,7 +954,7 @@ a.nav-welcome:hover {
   height: 100%;
   border: 0;
   background: transparent;
-  color: var(--muted);
+  color: color-mix(in srgb, var(--muted) 78%, var(--text));
   font-family: inherit;
   font-size: 1rem;
   font-weight: 900;
@@ -1000,7 +992,7 @@ a.nav-welcome:hover {
 .profile-redesign-achievements article {
   border: 1px solid var(--border);
   border-radius: 18px;
-  background: var(--panel-soft);
+  background: color-mix(in srgb, var(--panel-soft) 82%, var(--panel-surface));
   padding: 18px;
 }
 .profile-redesign-stats span {
@@ -1030,6 +1022,7 @@ a.nav-welcome:hover {
 .profile-redesign-section-title h2 {
   color: var(--text);
   font-size: 1.45rem;
+  font-weight: 700;
 }
 .profile-redesign-section-title p {
   color: var(--muted);
@@ -1054,16 +1047,17 @@ a.nav-welcome:hover {
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 18px;
-  background: var(--panel-soft);
-  transition: transform .2s ease, border-color .2s ease;
+  background: color-mix(in srgb, var(--panel-soft) 78%, var(--panel-surface));
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
 .profile-redesign-history-card:hover {
   transform: translateY(-4px);
   border-color: color-mix(in srgb, var(--accent) 46%, var(--border));
+  box-shadow: 0 18px 42px color-mix(in srgb, var(--accent) 12%, transparent);
 }
 .profile-redesign-empty {
   border-style: dashed;
-  background: var(--panel-soft);
+  background: color-mix(in srgb, var(--panel-soft) 78%, var(--panel-surface));
 }
 .profile-redesign-achievements {
   display: grid;
@@ -1094,8 +1088,8 @@ a.nav-welcome:hover {
 }
 :root[data-theme="dark"] .profile-redesign-page {
   background:
-    radial-gradient(circle at 22% 0%, rgba(74,98,160,.28), transparent 32rem),
-    radial-gradient(circle at 82% 6%, rgba(142,175,255,.12), transparent 24rem),
+    radial-gradient(circle at 22% 0%, rgba(74,98,160,.16), transparent 32rem),
+    radial-gradient(circle at 82% 6%, rgba(142,175,255,.07), transparent 24rem),
     var(--bg);
 }
 :root[data-theme="dark"] .nav-avatar-btn,
@@ -1119,6 +1113,50 @@ a.nav-welcome:hover {
 :root[data-theme="dark"] .profile-redesign-delete-account {
   color: #ffb0bf;
   background: rgba(94,19,51,.34);
+}
+:root[data-theme="dark"] .profile-card-body,
+:root[data-theme="dark"] .profile-redesign-history-card,
+:root[data-theme="dark"] .profile-redesign-stats article,
+:root[data-theme="dark"] .profile-redesign-achievements article,
+:root[data-theme="dark"] .profile-redesign-empty,
+:root[data-theme="dark"] .profile-empty,
+:root[data-theme="dark"] .profile-alert {
+  background: #182237;
+}
+:root[data-theme="dark"] .profile-redesign-tabs {
+  background: #162033;
+}
+:root[data-theme="dark"] .profile-status {
+  background: rgba(142,175,255,.14);
+  color: #cbd8ff;
+}
+:root[data-theme="dark"] .profile-delete-btn {
+  color: #ffb0bf;
+  background: rgba(94,19,51,.32);
+  border-color: rgba(255,176,191,.2);
+}
+:root:not([data-theme="dark"]) .profile-redesign-page {
+  background: #f4f7fb;
+}
+:root:not([data-theme="dark"]) .profile-redesign-content,
+:root:not([data-theme="dark"]) .profile-redesign-sidebar {
+  background: #ffffff;
+}
+:root:not([data-theme="dark"]) .profile-card-body,
+:root:not([data-theme="dark"]) .profile-redesign-history-card,
+:root:not([data-theme="dark"]) .profile-redesign-stats article,
+:root:not([data-theme="dark"]) .profile-redesign-achievements article,
+:root:not([data-theme="dark"]) .profile-redesign-empty,
+:root:not([data-theme="dark"]) .profile-empty {
+  background: #eef3fb;
+}
+:root:not([data-theme="dark"]) .profile-status {
+  background: #dfe8ff;
+  color: #31447c;
+}
+:root:not([data-theme="dark"]) .profile-delete-btn {
+  background: #fdecef;
+  color: #c0263d;
 }
 :root:not([data-theme="dark"]) .profile-redesign-tabs button,
 :root:not([data-theme="dark"]) .profile-redesign-section-title p,
