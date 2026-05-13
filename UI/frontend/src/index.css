@@ -1992,21 +1992,36 @@ section { padding: 80px 6%; }
   gap: 8px;
 }
 .gemini-preset-chip {
+  display: grid;
+  gap: 2px;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--primary);
-  border-radius: 999px;
-  padding: 7px 12px;
+  border-radius: 10px;
+  padding: 8px 12px;
   font-size: .78rem;
   font-weight: 700;
   line-height: 1.2;
+  text-align: left;
   transition: all .2s ease;
+}
+.gemini-preset-chip span {
+  font-weight: 800;
+}
+.gemini-preset-chip small {
+  color: var(--muted);
+  font-size: .68rem;
+  font-weight: 700;
 }
 .gemini-preset-chip:hover,
 .gemini-preset-chip.active {
   border-color: var(--accent);
   background: var(--primary);
   color: #fff;
+}
+.gemini-preset-chip:hover small,
+.gemini-preset-chip.active small {
+  color: rgba(255,255,255,.74);
 }
 .gemini-prompt {
   resize: vertical;

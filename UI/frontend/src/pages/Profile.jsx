@@ -98,7 +98,11 @@ export default function Profile() {
   const latestHistory = history.slice(0, 3)
 
   useEffect(() => {
-    setActiveTab(getInitialTab(location.search))
+    const timeoutId = window.setTimeout(() => {
+      setActiveTab(getInitialTab(location.search))
+    }, 0)
+
+    return () => window.clearTimeout(timeoutId)
   }, [location.search])
 
   useEffect(() => {

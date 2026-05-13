@@ -28,14 +28,22 @@ const FREE_DAILY_LIMIT = 5
 const HISTORY_TABLE_CANDIDATES = ['restored_images', 'image_history', 'images']
 const STORAGE_BUCKET_CANDIDATES = ['restored-images', 'image-history', 'images']
 const GEMINI_STYLE_PRESETS = [
-  { label: 'Cinematic', prompt: 'Transform this image into a cinematic portrait with dramatic lighting, rich contrast, and natural skin tones.' },
-  { label: 'Anime', prompt: 'Transform this image into a polished anime illustration with clean line art, soft shading, and expressive colors.' },
-  { label: 'Vintage Film', prompt: 'Give this image a vintage film look with warm tones, subtle grain, and a nostalgic analog photo style.' },
-  { label: 'Studio Portrait', prompt: 'Enhance this image as a professional studio portrait with soft lighting, clear facial detail, and premium retouching.' },
-  { label: 'Watercolor', prompt: 'Transform this image into a delicate watercolor painting with soft edges, flowing pigment, and an artistic paper texture.' },
-  { label: 'Cyberpunk', prompt: 'Transform this image into a cyberpunk style with neon lighting, futuristic colors, and a moody night atmosphere.' },
+  { label: 'Cinematic', hint: 'Movie color grade', prompt: 'Transform this image into a cinematic photo with natural skin tones, balanced teal-orange color grading, soft dramatic lighting, deep contrast, realistic texture, and a premium movie still look. Keep the original identity and composition.' },
+  { label: 'Studio Portrait', hint: 'Clean professional look', prompt: 'Enhance this image as a professional studio portrait with softbox lighting, clean background separation, detailed facial features, natural skin texture, balanced color, and premium editorial retouching. Keep the original identity.' },
+  { label: 'Vintage Film', hint: 'Warm analog tone', prompt: 'Give this image a vintage film look with warm analog colors, soft highlight rolloff, subtle film grain, gentle contrast, nostalgic tones, and realistic photographic texture. Keep the original subject and composition.' },
+  { label: 'Anime', hint: 'Illustration style', prompt: 'Transform this image into a polished anime illustration with clean line art, expressive eyes, soft cel shading, vivid but tasteful colors, detailed hair, and a high-quality character art finish.' },
+  { label: 'Luxury Fashion', hint: 'Editorial polish', prompt: 'Transform this image into a luxury fashion editorial style with elegant lighting, refined color grading, crisp details, premium magazine retouching, and a sophisticated high-end visual tone.' },
+  { label: 'Cyberpunk', hint: 'Neon night mood', prompt: 'Transform this image into a cyberpunk style with neon lighting, futuristic color accents, moody night atmosphere, glossy reflections, sharp details, and cinematic urban energy.' },
+  { label: 'Watercolor', hint: 'Soft art finish', prompt: 'Transform this image into a delicate watercolor painting with soft edges, flowing pigment, gentle paper texture, expressive colors, and an artistic hand-painted finish.' },
+  { label: 'Natural Vivid', hint: 'Realistic enhancement', prompt: 'Enhance this image with a natural vivid photo style: improve brightness, contrast, clarity, and color balance while keeping the image realistic, clean, and faithful to the original scene.' },
 ]
-const HD_ENHANCE_PROMPT = 'HD image enhancement: sharpen facial details, reduce blur and noise, improve contrast, restore natural texture, and keep the original identity.'
+const GEMINI_HD_PRESETS = [
+  { label: 'HD Restore', hint: 'Best default', prompt: 'HD image enhancement: upscale and restore this image with sharper details, reduced blur, reduced noise, improved contrast, clean edges, natural colors, and realistic texture. Keep the original identity, face shape, pose, clothing, background, and composition. Do not add new objects.' },
+  { label: 'Face Detail', hint: 'Portrait repair', prompt: 'Portrait HD restoration: improve facial clarity, eyes, skin texture, hair detail, and lighting while keeping the same identity. Reduce blur and noise, avoid plastic skin, avoid changing facial features, and preserve the original pose and expression.' },
+  { label: 'Old Photo', hint: 'Repair faded images', prompt: 'Old photo restoration: remove haze, reduce scratches and noise, recover realistic detail, improve contrast, correct faded tones, and keep a natural archival photo look without changing the original subject.' },
+  { label: 'Sharp Upscale', hint: 'Crisper edges', prompt: 'Sharp 2x HD upscale: increase perceived resolution, sharpen fine edges, improve texture detail, reduce compression artifacts, and keep colors natural. Avoid oversharpening, halos, or artificial details.' },
+]
+const HD_ENHANCE_PROMPT = GEMINI_HD_PRESETS[0].prompt
 const DEFAULT_ADJUSTMENTS = {
   brightness: 100,
   contrast: 100,
@@ -296,7 +304,7 @@ export default function UNetPage() {
   const [freeUsageCount, setFreeUsageCount] = useState(0)
   const [isSignedIn, setIsSignedIn] = useState(false)
   const [enhanceMode, setEnhanceMode] = useState('hd')
-  const [enhancePrompt, setEnhancePrompt] = useState('')
+  const [enhancePrompt, setEnhancePrompt] = useState(HD_ENHANCE_PROMPT)
   const [activeStylePreset, setActiveStylePreset] = useState('Natural')
   const [adjustments, setAdjustments] = useState(FREE_STYLE_PRESETS[0].settings)
 
@@ -528,9 +536,18 @@ export default function UNetPage() {
   }
   const selectGeminiMode = (mode) => {
     setEnhanceMode(mode)
-    if (mode === 'hd' && !enhancePrompt.trim()) {
-      setEnhancePrompt('HD Image')
+    if (mode === 'hd') {
+      setEnhancePrompt(prev => prev.trim() ? prev : HD_ENHANCE_PROMPT)
+      return
     }
+
+    if (mode === 'style') {
+      setEnhancePrompt(prev => prev.trim() && prev !== HD_ENHANCE_PROMPT ? prev : GEMINI_STYLE_PRESETS[0].prompt)
+    }
+  }
+
+  const applyGeminiPreset = (preset) => {
+    setEnhancePrompt(preset.prompt)
   }
 
   const downloadResult = () => {
@@ -750,24 +767,24 @@ export default function UNetPage() {
                   </button>
                 </div>
               </div>
-              {enhanceMode === 'style' && (
-                <div className="gemini-presets" aria-label="Popular Gemini style presets">
-                  {GEMINI_STYLE_PRESETS.map(preset => (
-                    <button
-                      type="button"
-                      key={preset.label}
-                      className={`gemini-preset-chip ${enhancePrompt === preset.prompt ? 'active' : ''}`}
-                      onClick={() => setEnhancePrompt(preset.prompt)}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <div className="gemini-presets" aria-label={enhanceMode === 'hd' ? 'Gemini HD presets' : 'Popular Gemini style presets'}>
+                {(enhanceMode === 'hd' ? GEMINI_HD_PRESETS : GEMINI_STYLE_PRESETS).map(preset => (
+                  <button
+                    type="button"
+                    key={preset.label}
+                    className={`gemini-preset-chip ${enhancePrompt === preset.prompt ? 'active' : ''}`}
+                    onClick={() => applyGeminiPreset(preset)}
+                    title={preset.hint}
+                  >
+                    <span>{preset.label}</span>
+                    <small>{preset.hint}</small>
+                  </button>
+                ))}
+              </div>
               <textarea
                 className="form-control form-control-sm gemini-prompt"
-                rows="2"
-                placeholder={enhanceMode === 'style' ? 'Choose a style above or describe your own...' : 'HD Image'}
+                rows="3"
+                placeholder={enhanceMode === 'style' ? 'Choose a style above or describe your own...' : 'Choose an HD preset or edit the prompt...'}
                 value={enhancePrompt}
                 onChange={e => setEnhancePrompt(e.target.value)}
               />
