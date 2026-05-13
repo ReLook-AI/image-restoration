@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
-import { Hero, FeatureCard, ToolCard, Testi, Footer } from '../components/HomeComponents'
+import { Hero, FeatureCard, ToolCard, Testi, TeamSection, Footer } from '../components/HomeComponents'
 import { supabase } from '../services/supabaseClient'
 
 export default function HomePage() {
@@ -65,6 +65,8 @@ export default function HomePage() {
           <ToolCard emoji="✨" title="Detail Preservation" desc="Adds color seamlessly without destroying the original sharpness, lighting depth, or fine textures." />
         </div>
       </section>
+
+      <TeamSection />
 
       {/* CTA */}
       <div style={{ background: 'linear-gradient(135deg,var(--primary),var(--accent))', borderRadius: 24, padding: '64px 48px', textAlign: 'center', color: '#fff', margin: '0 6% 80px', boxShadow: 'var(--shadow-lg)' }} className="fade-in">

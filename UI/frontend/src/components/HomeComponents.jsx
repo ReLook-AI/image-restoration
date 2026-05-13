@@ -96,6 +96,54 @@ export function ToolCard({ emoji, title, desc }) {
   )
 }
 
+const teamMembers = [
+  {
+    name: 'Kim Thư',
+    role: 'Co-Founder & CAIO',
+    initials: 'KT',
+    gradient: 'linear-gradient(135deg,#2f80ed,#1b5cff)',
+  },
+  {
+    name: 'Hoàng Hiệp',
+    role: 'AI Engineer',
+    initials: 'HH',
+    gradient: 'linear-gradient(135deg,#00c48c,#009f6b)',
+  },
+  {
+    name: 'Anh Tuấn',
+    role: 'Frontend Developer',
+    initials: 'AT',
+    gradient: 'linear-gradient(135deg,#7c3aed,#4f46e5)',
+  },
+  {
+    name: 'Tiến Dũng',
+    role: 'Backend Developer',
+    initials: 'TD',
+    gradient: 'linear-gradient(135deg,#f59e0b,#ef4444)',
+  },
+]
+
+export function TeamSection() {
+  return (
+    <section id="team" className="team-section">
+      <div className="text-center">
+        <h2 className="team-title">Our Team</h2>
+      </div>
+      <div className="team-grid fade-in">
+        {teamMembers.map(member => (
+          <article className="team-member" key={member.name}>
+            <div className="team-avatar" style={{ background: member.gradient }}>
+              {member.initials}
+            </div>
+            <h3>{member.name}</h3>
+            <p>{member.role}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 export function Testi({ text, name, role, initials }) {
   return (
     <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 28 }}>
