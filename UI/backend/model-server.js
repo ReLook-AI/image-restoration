@@ -390,10 +390,17 @@ function createGeminiError(response, data) {
   const details = data?.error?.message || `HTTP ${response.status}`
   const normalized = details.toLowerCase()
 
-  if (normalized.includes('quota') || normalized.includes('rate-limit') || normalized.includes('rate limits')) {
+  if (
+    normalized.includes('quota') ||
+    normalized.includes('rate-limit') ||
+    normalized.includes('rate limits') ||
+    normalized.includes('prepayment credits') ||
+    normalized.includes('credits are depleted') ||
+    normalized.includes('billing')
+  ) {
     return new HttpError(
       429,
-      'Gemini AI quota is exhausted for this API key. Please add billing/quota in Google AI Studio or use another Gemini key.',
+      'Gemini AI quota or prepaid credits are exhausted for this API key. Please add billing/credits in Google AI Studio or use another Gemini key.',
     )
   }
 

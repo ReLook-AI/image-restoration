@@ -25,8 +25,15 @@ function normalizeGeminiError(data, fallbackStatus) {
   const rawMessage = [data?.message, data?.details].filter(Boolean).join(' ')
   const lowerMessage = rawMessage.toLowerCase()
 
-  if (lowerMessage.includes('quota') || lowerMessage.includes('rate-limit') || lowerMessage.includes('rate limits')) {
-    return 'Gemini AI quota is exhausted for this API key. Please add billing/quota in Google AI Studio or use another Gemini key, then try Run AI again.'
+  if (
+    lowerMessage.includes('quota') ||
+    lowerMessage.includes('rate-limit') ||
+    lowerMessage.includes('rate limits') ||
+    lowerMessage.includes('prepayment credits') ||
+    lowerMessage.includes('credits are depleted') ||
+    lowerMessage.includes('billing')
+  ) {
+    return 'Gemini AI quota or prepaid credits are exhausted for this API key. Please add billing/credits in Google AI Studio or use another Gemini key, then try Run Gemini again.'
   }
 
   if (lowerMessage.includes('api key') || lowerMessage.includes('permission_denied') || lowerMessage.includes('unauthorized')) {
