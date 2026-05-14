@@ -1,21 +1,19 @@
 # 🎨 ReLook-AI - Automated Image Restoration & Colorization Platform
 
-Welcome to **ReLook-AI**! This is an AI-powered web application for restoring, enhancing, colorizing, and restyling images. It helps bring old, low-quality, black-and-white, or damaged photos back to life with a modern web interface, user accounts, payment flows, and an extensible backend for real AI model services.
+Welcome to **ReLook-AI**! This is an AI-powered web application for restoring, enhancing, and colorizing images. It helps bring old, low-quality, black-and-white, or damaged photos back to life with a modern web interface, user accounts, payment flows, and an extensible backend for real AI model services.
 
 ![ReLook-AI Banner](https://via.placeholder.com/800x200/4F46E5/FFFFFF?text=ReLook-AI+Image+Restoration)
 
 ## ✨ Key Features
 
 - **B&W Image Colorization**: Connect your own AI model backend to colorize or restore old black-and-white photos.
-- **HD Image Enhancement**: Improve clarity, sharpness, detail, contrast, and overall image quality through the Gemini image enhancement endpoint.
-- **AI Style Editing**: Use prompt-based Gemini editing to restyle uploaded images while preserving the main subject and composition.
 - **Intuitive Studio UI**: Modern React interface with image upload, preview, result display, and AI controls.
 - **Supabase Authentication**: Email/password and optional Google login with user profile syncing.
 - **Image History Support**: Supabase SQL scripts are included for storing restored image history and storage policies.
 - **Admin Dashboard**: Role-based admin access through Supabase profiles.
 - **Account Management**: Backend support for deleting user account data and Supabase Auth users.
 - **Convenient Payments**: Backend payment flow with PayPal and VietQR adapters for plan upgrades and sponsorship/payment use cases.
-- **Deployment Ready Backend**: Node.js backend supports local demo mode, external model forwarding, Gemini image editing, payment callbacks, and health checks.
+- **Deployment Ready Backend**: Node.js backend supports local demo mode, external model forwarding, payment callbacks, and health checks.
 
 ## 🛠️ Technology Stack
 
@@ -24,9 +22,8 @@ This project is built with modern web technologies for fast development and scal
 - **Frontend Framework**: [React 19](https://react.dev/) with [Vite](https://vitejs.dev/).
 - **Routing**: [React Router v7](https://reactrouter.com/).
 - **Styling**: [Bootstrap 5](https://getbootstrap.com/), React Bootstrap, Bootstrap Icons, and custom CSS.
-- **Backend**: Node.js HTTP server with Busboy for secure image upload parsing.
+- **Backend**: Node.js HTTP server for model inference, payments, account deletion, and health checks.
 - **Authentication & Database**: Supabase Auth, database tables, storage policies, and service-role backend operations.
-- **AI Image Editing**: Gemini Image API through a protected backend endpoint.
 - **Payments**: PayPal and VietQR backend adapters.
 - **Model Integration**: External inference service support through `MODEL_ENDPOINT`.
 
@@ -43,7 +40,7 @@ frontend/              React + Vite user interface
     pages/             Route-level pages
     services/          API config, Supabase client, account/payment clients
 
-backend/               Node API for model inference, Gemini enhance, payments, account deletion
+backend/               Node API for model inference, payments, account deletion
   payments/            Payment service, webhook handler, PayPal and VietQR adapters
   supabase-*.sql       Supabase database setup scripts
 
@@ -102,7 +99,6 @@ Create `frontend/.env`:
 ```env
 VITE_API_BASE_URL=http://localhost:8000
 VITE_MODEL_API_URL=http://localhost:8000/api/segment
-VITE_IMAGE_ENHANCE_API_URL=http://localhost:8000/api/image/enhance
 VITE_PAYMENT_API_URL=http://localhost:8000/api/payments/create
 
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
@@ -121,9 +117,6 @@ CORS_ORIGIN=http://localhost:5173
 
 MODEL_ENDPOINT=http://localhost:9000/predict
 
-GEMINI_API_KEY=your-gemini-api-key
-GEMINI_IMAGE_MODEL=gemini-2.5-flash-image
-
 SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 ```
@@ -131,9 +124,8 @@ SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 Notes:
 
 - `MODEL_ENDPOINT` is optional. If it is not configured, `/api/segment` returns a demo response.
-- `GEMINI_API_KEY` is required for `/api/image/enhance`.
 - `SUPABASE_SERVICE_ROLE_KEY` is required for protected backend account deletion.
-- Never expose service-role keys, payment secrets, or Gemini API keys in React.
+- Never expose service-role keys or payment secrets in React.
 
 ## Payment API Contract
 
@@ -202,35 +194,11 @@ The model service should accept JSON with `imageDataURL`, `modelId`, and `params
 
 If `MODEL_ENDPOINT` ends with `/colorize`, the backend sends the uploaded image as multipart form data and expects a colorized image path in the response.
 
-## Gemini Image Enhance API
-
-The frontend calls:
-
-```text
-POST /api/image/enhance
-```
-
-This endpoint accepts multipart form data:
-
-```text
-image: PNG, JPEG, or WebP file
-mode: hd | style
-prompt: optional text prompt
-```
-
-Supported modes:
-
-- `hd`: Enhances image quality, sharpness, details, contrast, and noise reduction.
-- `style`: Applies prompt-based image editing. A prompt is required in this mode.
-
-The backend validates image type/signature and limits uploads to 10MB.
-
 ## Backend API Routes
 
 ```http
 GET /health
 POST /api/segment
-POST /api/image/enhance
 POST /api/payments/create
 GET /api/payments/status?orderId=<order-id>
 POST /api/payments/webhook
@@ -292,7 +260,7 @@ To view and run the web application locally, make sure [Node.js](https://nodejs.
    http://localhost:5173/
    ```
 
-   Explore the home page, sign in, try the AI studio at `/app`, test image enhancement, and review the payment flow.
+   Explore the home page, sign in, try the AI studio at `/app`, and review the payment flow.
 
 ## Available Scripts
 
@@ -325,7 +293,7 @@ Start the backend in production mode:
 npm --prefix backend run start
 ```
 
-When deploying, configure frontend and backend environment variables for your production domain, Supabase project, payment providers, model service, and Gemini API key.
+When deploying, configure frontend and backend environment variables for your production domain, Supabase project, payment providers, and model service.
 
 ---
 
